@@ -9,13 +9,26 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.TextViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.example.me.timetable.data.DbHelper;
+import com.example.me.timetable.data.DbHelper.dataEntry;
+
+import org.json.JSONException;
 
 import java.net.URL;
 import java.util.Date;
@@ -23,6 +36,10 @@ import java.util.Date;
 public class MainActivity extends AppCompatActivity
 {
   private final String tag = this.getClass().getSimpleName();
+
+  private EditText searchBar;
+
+  private ArrayAdapter<String> eventsAdapter;
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -34,35 +51,75 @@ public class MainActivity extends AppCompatActivity
 
     if ( isOnline() )
     {
-      new SyncData().execute();
+      new SyncData("9:00").execute();
     }
+
+    searchBar = (EditText) findViewById(R.id.search_bar);
+    searchBar.setOnEditorActionListener(
+      new EditText.OnEditorActionListener()
+      {
+        @Override
+        public boolean onEditorAction (TextView view, int actionId, KeyEvent event)
+        {
+          if (actionId == EditorInfo.IME_ACTION_DONE)
+          {
+            performSearch();
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+
+            return true;
+          }
+          return false;
+        }
+      }
+    );
   }
 
-  private class SyncData extends AsyncTask<URL, Void, String []>
+  private void performSearch ()
+  {
+    Log.e(tag, searchBar.getText().toString());
+  }
+
+  private class SyncData extends AsyncTask<URL, Void, String>
   {
     private final String tag = this.getClass().getSimpleName();
 
     private long now;
 
-    protected String [] doInBackground (URL... urls)
+    private String time;
+
+    public SyncData (String newTime)
+    {
+      time = newTime;
+    }
+
+    protected String doInBackground (URL... urls)
     {
       now = (new Date()).getTime();
       long timestamp = getTimestamp();
 
-      String syncData [] = new String[1];
-      syncData[0] = HttpService.getSync("9:00", timestamp);
+      String syncData;
+      syncData = HttpService.getSync(time, timestamp);
 
-      return syncData;
+      EventElement [] output;
+
+      int resultLength = 0;
+      try
+      {
+        output = ResponseParser.getElements(syncData);
+        storeChanges(time, output);
+        setTimestamp(now);
+      }
+      catch (JSONException e)
+      {
+        Log.e(tag, "response is empty", e);
+      }
+      return "";
     }
 
-    protected void onPostExecute (String [] syncData)
+    protected void onPostExecute (String q)
     {
-      for (int i = 0; i < syncData.length; i++)
-      {
-        Log.e(tag, syncData[i]);
-      }
-
-      setTimestamp(now);
+      Log.e(tag, q);
     }
   }
 
@@ -116,6 +173,37 @@ public class MainActivity extends AppCompatActivity
     db.insert(DbHelper.timeEntry.TABLE_NAME, null, values);
 
     db.close();
+  }
+
+  private void storeChanges (String time, EventElement [] data)
+  {
+    // connect to location db in write mode
+    DbHelper mDbHelper = new DbHelper(this);
+    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+    for (int k = 0; k < data.length; k++)
+    {
+      try
+      {
+        ContentValues event = new ContentValues();
+        event.put(dataEntry.TIME, time);
+        event.put(dataEntry.DAY, data[k].day);
+        event.put(dataEntry.PLACE, data[k].place);
+        event.put(dataEntry.NAME, data[k].name);
+        event.put(dataEntry.GROUP, data[k].group);
+        event.put(dataEntry.PERSON, data[k].person);
+        event.put(dataEntry.PERSON_ID, data[k].personId);
+        event.put(dataEntry.FULL_NAME, data[k].fullName);
+        event.put(dataEntry.STATUS, data[k].status);
+        event.put(dataEntry.TIMESTAMP, data[k].timestamp);
+
+        db.insert(dataEntry.TABLE_NAME, null, event);
+      }
+      catch (Exception e)
+      {
+        Log.e(tag, "inserting event into db", e);
+      }
+    }
   }
 }
 
