@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Timetable</string>
+
+    <string name="pref_refresh">pref_refresh</string>
+</resources>
