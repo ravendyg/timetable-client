@@ -15,75 +15,74 @@ import java.net.URL;
  */
 public class HttpService
 {
-  private static final String tag = "http service";
+  private final String tag = "http service";
 
-  private static final String SYNC_API_URL = "http://192.168.1.157:3011/sync";
+  private final String SYNC_API_URL = "http://192.168.1.157:3011/sync";
 
-  public static String getSync (String time, long timestamp)
+  public String getSync (String time, long timestamp)
   {
     HttpURLConnection connection = null;
     BufferedReader reader = null;
 
-    String dataSrt = "";
+    String dataSrt = "" ;
 
-    try
-    {
-      Uri builtUri = Uri.parse(SYNC_API_URL).buildUpon()
-        .appendQueryParameter("time", time)
-        .appendQueryParameter("timestamp", "" + timestamp)
-        .build();
-
-      URL url = new URL(builtUri.toString());
-
-      connection = (HttpURLConnection) url.openConnection();
-      connection.setRequestMethod("GET");
-      connection.connect();
-
-      InputStream input = connection.getInputStream();
-      StringBuffer buffer = new StringBuffer();
-
-      if (input == null)
+      try
       {
-        return dataSrt;
-      }
+        Uri builtUri = Uri.parse(SYNC_API_URL).buildUpon()
+                .appendQueryParameter("time", time)
+                .appendQueryParameter("timestamp", "" + timestamp)
+                .build();
 
-      reader = new BufferedReader(new InputStreamReader(input));
+        URL url = new URL(builtUri.toString());
 
-      String line;
-      while ((line = reader.readLine()) != null)
-      {
-        buffer.append(line + "\n");
-      }
+        connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+        connection.connect();
 
-      if (buffer.length() == 0)
-      {
-        return dataSrt;
-      }
+        InputStream input = connection.getInputStream();
+        StringBuffer buffer = new StringBuffer();
 
-      dataSrt = buffer.toString();
-    }
-    catch (IOException e)
-    {
-      Log.e(tag, "error", e);
-    }
-    finally
-    {
-      if (connection != null)
-      {
-        connection.disconnect();
-      }
-      if (reader != null)
-      {
-        try
+        if (input == null)
         {
-          reader.close();
+          return dataSrt;
         }
-        catch (final IOException e)
+
+        reader = new BufferedReader(new InputStreamReader(input));
+
+        String line;
+        while ((line = reader.readLine()) != null)
         {
-          Log.e(tag, "closing stream", e);
+          buffer.append(line + "\n");
+        }
+
+        if (buffer.length() == 0)
+        {
+          return dataSrt;
+        }
+
+        dataSrt = buffer.toString();
+      }
+      catch (IOException e)
+      {
+        Log.e(tag, "error", e);
+      }
+      finally
+      {
+        if (connection != null)
+        {
+          connection.disconnect();
+        }
+        if (reader != null)
+        {
+          try
+          {
+            reader.close();
+          } catch (final IOException e)
+          {
+            Log.e(tag, "closing stream", e);
+          }
         }
       }
-    }
 
     return dataSrt;
   }

@@ -21,11 +21,11 @@
         android:hint="@string/search_hint"
     />
 
-    <ScrollView
-        android:id="@+id/scroll_view"
+    <ListView
+        android:id="@+id/list_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-    />
+        android:layout_height="wrap_content">
+    </ListView>
+
 </LinearLayout>
 

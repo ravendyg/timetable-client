@@ -22,15 +22,21 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.example.me.timetable.data.DbHelper;
 import com.example.me.timetable.data.DbHelper.dataEntry;
+import com.example.me.timetable.data.DbHelper.personEntry;
+import com.example.me.timetable.data.DbHelper.groupEntry;
 
 import org.json.JSONException;
 
+import java.lang.reflect.Array;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity
@@ -39,7 +45,16 @@ public class MainActivity extends AppCompatActivity
 
   private EditText searchBar;
 
-  private ArrayAdapter<String> eventsAdapter;
+  private ArrayAdapter<String> searchAdapter;
+
+  private ArrayList<String> storage = new ArrayList<String>(Arrays.asList(new String[0]));
+  private ArrayList<String> temp = new ArrayList<String>(Arrays.asList(new String[0]));
+
+  ListView searchList;
+
+  private int counter = 0;
+
+  String [] times = new String [] {"9:00", "10:50", "12:40", "14:30", "16:20", "18:10", "20:00"};
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -48,11 +63,22 @@ public class MainActivity extends AppCompatActivity
     setContentView(R.layout.activity_main);
 
     String syncData = "not connected";
+    long now = (new Date()).getTime();
+    long timestamp = getTimestamp();
 
     if ( isOnline() )
     {
-      new SyncData("9:00").execute();
+      for (int i = 0; i < times.length; i++)
+      {
+        new SyncData(times[i], now, timestamp).execute();
+      }
     }
+
+    searchList = (ListView) this.findViewById(R.id.list_view);
+
+    searchAdapter =
+            new ArrayAdapter<String>(this, R.layout.search_item, R.id.search_item_text, temp);
+    searchList.setAdapter(searchAdapter);
 
     searchBar = (EditText) findViewById(R.id.search_bar);
     searchBar.setOnEditorActionListener(
@@ -78,30 +104,45 @@ public class MainActivity extends AppCompatActivity
   private void performSearch ()
   {
     Log.e(tag, searchBar.getText().toString());
+
+    ArrayList<String> matching = new ArrayList<String>(Arrays.asList(new String[0]));
+    String value;
+    String input = searchBar.getText().toString().toLowerCase();
+
+    for (int i = 0; i < storage.size(); i++)
+    {
+      value = storage.get(i).toLowerCase();
+      if ( value.contains(input) )
+      {
+        matching.add(value);
+      }
+    }
+
+    searchAdapter.clear();
+    searchAdapter.addAll(matching);
   }
 
   private class SyncData extends AsyncTask<URL, Void, String>
   {
     private final String tag = this.getClass().getSimpleName();
 
-    private long now;
+    private long now, timestamp;
 
     private String time;
 
-    public SyncData (String newTime)
+    public SyncData (String timeData, long nowT, long tmsp)
     {
-      time = newTime;
+      time = timeData;
+      now = nowT;
+      timestamp = tmsp;
     }
 
     protected String doInBackground (URL... urls)
     {
-      now = (new Date()).getTime();
-      long timestamp = getTimestamp();
-
       String syncData;
-      syncData = HttpService.getSync(time, timestamp);
+      syncData = new HttpService().getSync(time, timestamp);
 
-      EventElement [] output;
+      EventElement[] output;
 
       int resultLength = 0;
       try
@@ -109,18 +150,50 @@ public class MainActivity extends AppCompatActivity
         output = ResponseParser.getElements(syncData);
         storeChanges(time, output);
         setTimestamp(now);
-      }
-      catch (JSONException e)
+        Log.e(tag, time + ": " + syncData);
+      } catch (JSONException e)
       {
         Log.e(tag, "response is empty", e);
       }
       return "";
     }
 
-    protected void onPostExecute (String q)
+    protected void onPostExecute (String time)
     {
-      Log.e(tag, q);
+      Log.e(tag, time);
+
+      counter++;
+      if (counter == times.length)
+      {
+        refreshList();
+      }
     }
+  }
+
+  private void refreshList ()
+  {
+    DbHelper mDbHelper = new DbHelper(this);
+    SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+    String queryString = "SELECT " + groupEntry.NAME + " FROM " + groupEntry.TABLE_NAME + ";";
+    Cursor cursor = db.rawQuery(queryString, null);
+
+    while (cursor.moveToNext())
+    {
+      storage.add(cursor.getString(0));
+    }
+
+    cursor.close();
+
+    queryString = "SELECT " + personEntry.FULL_NAME + " FROM " + personEntry.TABLE_NAME + ";";
+    cursor = db.rawQuery(queryString, null);
+
+    while (cursor.moveToNext())
+    {
+      storage.add(cursor.getString(0));
+    }
+
+    cursor.close();
   }
 
   private boolean isOnline() {
@@ -202,6 +275,31 @@ public class MainActivity extends AppCompatActivity
       catch (Exception e)
       {
         Log.e(tag, "inserting event into db", e);
+      }
+
+      try
+      {
+        ContentValues event = new ContentValues();
+        event.put(DbHelper.personEntry.PERSON_ID, data[k].personId);
+        event.put(DbHelper.personEntry.FULL_NAME, data[k].fullName);
+
+        db.insert(DbHelper.personEntry.TABLE_NAME, null, event);
+      }
+      catch (Exception e)
+      {
+        Log.e(tag, "inserting people into db", e);
+      }
+
+      try
+      {
+        ContentValues event = new ContentValues();
+        event.put(DbHelper.groupEntry.NAME, data[k].group);
+
+        db.insert(DbHelper.groupEntry.TABLE_NAME, null, event);
+      }
+      catch (Exception e)
+      {
+        Log.e(tag, "inserting groups into db", e);
       }
     }
   }
