@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
@@ -203,6 +204,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     cursor.close();
+
+    findViewById(R.id.loading_message).setVisibility(View.GONE);
+    findViewById(R.id.loading_spinner).setVisibility(View.GONE);
+    findViewById(R.id.search_view).setVisibility(View.VISIBLE);
   }
 
   private boolean isOnline() {
