@@ -3,6 +3,7 @@ package com.example.me.timetable;
 import android.Manifest;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -21,6 +22,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -80,11 +82,6 @@ public class MainActivity extends AppCompatActivity
       refreshList();
     }
 
-    searchList = (ListView) this.findViewById(R.id.list_view);
-
-    searchAdapter = new SearchAdapter(this, temp);
-    searchList.setAdapter(searchAdapter);
-
     searchBar = (EditText) findViewById(R.id.search_bar);
     searchBar.setOnEditorActionListener(
       new EditText.OnEditorActionListener()
@@ -104,6 +101,27 @@ public class MainActivity extends AppCompatActivity
         }
       }
     );
+
+    searchList = (ListView) this.findViewById(R.id.list_view);
+
+    searchAdapter = new SearchAdapter(this, temp);
+    searchList.setAdapter(searchAdapter);
+
+    searchList.setOnItemClickListener(
+      new AdapterView.OnItemClickListener()
+      {
+        @Override
+        public void onItemClick (AdapterView<?> adapterView, View view, int position, long id)
+        {
+          SearchElement element = searchAdapter.getElement(position);
+          Log.e("adapter click", element.text);
+
+          Intent tableIntent = new Intent(MainActivity.this, TableActivity.class);
+          tableIntent.putExtra("data", element);
+          startActivity(tableIntent);
+        }
+    }
+    );
   }
 
   private void performSearch ()
@@ -113,6 +131,8 @@ public class MainActivity extends AppCompatActivity
     ArrayList<SearchElement> matching = new ArrayList<SearchElement>(Arrays.asList(new SearchElement[0]));
     SearchElement value;
     String input = searchBar.getText().toString();
+
+    searchAdapter.clear();
 
     // no empty search input
     if (input.length() > 0)
@@ -125,10 +145,9 @@ public class MainActivity extends AppCompatActivity
           matching.add(value);
         }
       }
-    }
 
-    searchAdapter.clear();
-    searchAdapter.addAll(matching);
+      searchAdapter.addAll(matching);
+    }
   }
 
   private class SyncData extends AsyncTask<URL, Void, String>

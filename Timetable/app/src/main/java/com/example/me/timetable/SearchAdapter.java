@@ -53,7 +53,7 @@ public class SearchAdapter extends BaseAdapter
     return position;
   }
 
-  private SearchElement getElement (int position)
+  public SearchElement getElement (int position)
   {
     return (SearchElement) getItem(position);
   }

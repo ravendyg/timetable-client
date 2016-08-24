@@ -1,9 +1,11 @@
 package com.example.me.timetable;
 
+import java.io.Serializable;
+
 /**
  * Created by me on 24/08/16.
  */
-public class SearchElement
+public class SearchElement implements Serializable
 {
   public String text;
   public String type;
