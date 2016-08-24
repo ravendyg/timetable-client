@@ -73,6 +73,10 @@ public class MainActivity extends AppCompatActivity
         new SyncData(times[i], now, timestamp).execute();
       }
     }
+    else
+    {
+      refreshList();
+    }
 
     searchList = (ListView) this.findViewById(R.id.list_view);
 
@@ -107,14 +111,18 @@ public class MainActivity extends AppCompatActivity
 
     ArrayList<String> matching = new ArrayList<String>(Arrays.asList(new String[0]));
     String value;
-    String input = searchBar.getText().toString().toLowerCase();
+    String input = searchBar.getText().toString();
 
-    for (int i = 0; i < storage.size(); i++)
+    // no empty search input
+    if (input.length() > 0)
     {
-      value = storage.get(i).toLowerCase();
-      if ( value.contains(input) )
+      for (int i = 0; i < storage.size(); i++)
       {
-        matching.add(value);
+        value = storage.get(i);
+        if (value.toLowerCase().contains(input.toLowerCase()))
+        {
+          matching.add(value);
+        }
       }
     }
 
@@ -147,8 +155,9 @@ public class MainActivity extends AppCompatActivity
       int resultLength = 0;
       try
       {
+        String type = ResponseParser.getType(syncData);
         output = ResponseParser.getElements(syncData);
-        storeChanges(time, output);
+        storeChanges(time, output, type);
         setTimestamp(now);
         Log.e(tag, time + ": " + syncData);
       } catch (JSONException e)
@@ -248,7 +257,7 @@ public class MainActivity extends AppCompatActivity
     db.close();
   }
 
-  private void storeChanges (String time, EventElement [] data)
+  private void storeChanges (String time, EventElement [] data, String type)
   {
     // connect to location db in write mode
     DbHelper mDbHelper = new DbHelper(this);
@@ -258,50 +267,53 @@ public class MainActivity extends AppCompatActivity
     {
       try
       {
-        ContentValues event = new ContentValues();
-        event.put(dataEntry.TIME, time);
-        event.put(dataEntry.DAY, data[k].day);
-        event.put(dataEntry.PLACE, data[k].place);
-        event.put(dataEntry.NAME, data[k].name);
-        event.put(dataEntry.GROUP, data[k].group);
-        event.put(dataEntry.PERSON, data[k].person);
-        event.put(dataEntry.PERSON_ID, data[k].personId);
-        event.put(dataEntry.FULL_NAME, data[k].fullName);
-        event.put(dataEntry.STATUS, data[k].status);
-        event.put(dataEntry.TIMESTAMP, data[k].timestamp);
+        if (data[k].status == 1)
+        {
+          insertNewEvent(db, data[k], time);
 
-        db.insert(dataEntry.TABLE_NAME, null, event);
+          ContentValues person = new ContentValues();
+          person.put(DbHelper.personEntry.PERSON_ID, data[k].personId);
+          person.put(DbHelper.personEntry.FULL_NAME, data[k].fullName);
+          db.insert(DbHelper.personEntry.TABLE_NAME, null, person);
+
+          ContentValues group = new ContentValues();
+          group.put(DbHelper.groupEntry.NAME, data[k].group);
+          db.insert(DbHelper.groupEntry.TABLE_NAME, null, group);
+        }
+        else
+        {
+          String query =
+            "DELETE FROM " + dataEntry.TABLE_NAME +
+              " WHERE " +
+                dataEntry.TIME + "=" + time +
+                dataEntry.DAY + "=" + data[k].day +
+                dataEntry.PLACE + "=" + data[k].place +
+            ";";
+          db.rawQuery(query, null);
+        }
       }
       catch (Exception e)
       {
         Log.e(tag, "inserting event into db", e);
       }
-
-      try
-      {
-        ContentValues event = new ContentValues();
-        event.put(DbHelper.personEntry.PERSON_ID, data[k].personId);
-        event.put(DbHelper.personEntry.FULL_NAME, data[k].fullName);
-
-        db.insert(DbHelper.personEntry.TABLE_NAME, null, event);
-      }
-      catch (Exception e)
-      {
-        Log.e(tag, "inserting people into db", e);
-      }
-
-      try
-      {
-        ContentValues event = new ContentValues();
-        event.put(DbHelper.groupEntry.NAME, data[k].group);
-
-        db.insert(DbHelper.groupEntry.TABLE_NAME, null, event);
-      }
-      catch (Exception e)
-      {
-        Log.e(tag, "inserting groups into db", e);
-      }
     }
+  }
+
+  private void insertNewEvent (SQLiteDatabase db, EventElement data, String time)
+  {
+    ContentValues event = new ContentValues();
+    event.put(dataEntry.TIME, time);
+    event.put(dataEntry.DAY, data.day);
+    event.put(dataEntry.PLACE, data.place);
+    event.put(dataEntry.NAME, data.name);
+    event.put(dataEntry.GROUP, data.group);
+    event.put(dataEntry.PERSON, data.person);
+    event.put(dataEntry.PERSON_ID, data.personId);
+    event.put(dataEntry.FULL_NAME, data.fullName);
+    event.put(dataEntry.STATUS, data.status);
+    event.put(dataEntry.TIMESTAMP, data.timestamp);
+
+    db.insert(dataEntry.TABLE_NAME, null, event);
   }
 }
 

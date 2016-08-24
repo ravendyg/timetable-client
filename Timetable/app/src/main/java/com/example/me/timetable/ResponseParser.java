@@ -1,5 +1,7 @@
 package com.example.me.timetable;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,9 +40,26 @@ public class ResponseParser
     }
     catch (JSONException e)
     {
+      Log.e("parser", "read data", e);
       result = new EventElement[0];
     }
 
     return result;
+  }
+
+  public static String getType (String rawJson)
+    throws JSONException
+  {
+    String type = "new";
+    try
+    {
+      type = new JSONObject(rawJson).getString("flag");
+    }
+    catch (JSONException e)
+    {
+      Log.e("parser", "get response type", e);
+    }
+
+    return type;
   }
 }

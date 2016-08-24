@@ -61,7 +61,7 @@ public class DbHelper extends SQLiteOpenHelper
     public static final String FULL_NAME = "full_name";
   }
 
-  private static final int DB_VERSION = 11;
+  private static final int DB_VERSION = 14;
 
   static final String DB_NAME = "timetable.db";
 
@@ -89,7 +89,7 @@ public class DbHelper extends SQLiteOpenHelper
 
         "UNIQUE (" +
           dataEntry.DAY + ", "  + dataEntry.TIME + ", " +
-          dataEntry.PLACE + ", " + dataEntry.TIMESTAMP +
+          dataEntry.PLACE + /*", " + dataEntry.TIMESTAMP +*/
         ") ON CONFLICT REPLACE);";
 
     final String CREATE_STAMP_TABLE =
