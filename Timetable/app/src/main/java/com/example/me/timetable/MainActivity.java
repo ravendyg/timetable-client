@@ -46,10 +46,11 @@ public class MainActivity extends AppCompatActivity
 
   private EditText searchBar;
 
-  private ArrayAdapter<String> searchAdapter;
+  private SearchAdapter searchAdapter;
 
-  private ArrayList<String> storage = new ArrayList<String>(Arrays.asList(new String[0]));
-  private ArrayList<String> temp = new ArrayList<String>(Arrays.asList(new String[0]));
+  private ArrayList<SearchElement> storage = new ArrayList<SearchElement>(Arrays.asList(new SearchElement[0]));
+
+  private ArrayList<SearchElement> temp = new ArrayList<SearchElement>(Arrays.asList(new SearchElement[0]));
 
   ListView searchList;
 
@@ -81,8 +82,7 @@ public class MainActivity extends AppCompatActivity
 
     searchList = (ListView) this.findViewById(R.id.list_view);
 
-    searchAdapter =
-            new ArrayAdapter<String>(this, R.layout.search_item, R.id.search_item_text, temp);
+    searchAdapter = new SearchAdapter(this, temp);
     searchList.setAdapter(searchAdapter);
 
     searchBar = (EditText) findViewById(R.id.search_bar);
@@ -110,8 +110,8 @@ public class MainActivity extends AppCompatActivity
   {
     Log.e(tag, searchBar.getText().toString());
 
-    ArrayList<String> matching = new ArrayList<String>(Arrays.asList(new String[0]));
-    String value;
+    ArrayList<SearchElement> matching = new ArrayList<SearchElement>(Arrays.asList(new SearchElement[0]));
+    SearchElement value;
     String input = searchBar.getText().toString();
 
     // no empty search input
@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity
       for (int i = 0; i < storage.size(); i++)
       {
         value = storage.get(i);
-        if (value.toLowerCase().contains(input.toLowerCase()))
+        if (value.text.toLowerCase().contains(input.toLowerCase()))
         {
           matching.add(value);
         }
@@ -190,17 +190,21 @@ public class MainActivity extends AppCompatActivity
 
     while (cursor.moveToNext())
     {
-      storage.add(cursor.getString(0));
+      SearchElement element = new SearchElement(cursor.getString(0), "group", 0);
+      storage.add(element);
     }
 
     cursor.close();
 
-    queryString = "SELECT " + personEntry.FULL_NAME + " FROM " + personEntry.TABLE_NAME + ";";
+    queryString =
+      "SELECT " + personEntry.FULL_NAME + ", " + personEntry.PERSON_ID +
+      " FROM " + personEntry.TABLE_NAME + ";";
     cursor = db.rawQuery(queryString, null);
 
     while (cursor.moveToNext())
     {
-      storage.add(cursor.getString(0));
+      SearchElement element = new SearchElement(cursor.getString(0), "group", cursor.getInt(1));
+      storage.add(element);
     }
 
     cursor.close();
