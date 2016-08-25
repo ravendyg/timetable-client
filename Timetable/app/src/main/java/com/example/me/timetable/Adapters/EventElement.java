@@ -1,4 +1,4 @@
-package com.example.me.timetable;
+package com.example.me.timetable.Adapters;
 
 /**
  * Created by me on 21/08/16.
@@ -15,7 +15,7 @@ public class EventElement
   public int status;
   public long timestamp;
 
-  EventElement (
+  public EventElement (
     int newDay,
     String newPlace,
     String newGroup,

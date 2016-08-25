@@ -10,25 +10,22 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.os.SystemClock;
-import android.preference.PreferenceManager;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.TextViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.example.me.timetable.Adapters.EventElement;
+import com.example.me.timetable.Adapters.SearchAdapter;
+import com.example.me.timetable.Adapters.SearchElement;
 import com.example.me.timetable.data.DbHelper;
 import com.example.me.timetable.data.DbHelper.dataEntry;
 import com.example.me.timetable.data.DbHelper.personEntry;
@@ -36,10 +33,10 @@ import com.example.me.timetable.data.DbHelper.groupEntry;
 
 import org.json.JSONException;
 
-import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity
@@ -146,6 +143,7 @@ public class MainActivity extends AppCompatActivity
         }
       }
 
+      Collections.sort(matching);
       searchAdapter.addAll(matching);
     }
   }
@@ -222,7 +220,7 @@ public class MainActivity extends AppCompatActivity
 
     while (cursor.moveToNext())
     {
-      SearchElement element = new SearchElement(cursor.getString(0), "group", cursor.getInt(1));
+      SearchElement element = new SearchElement(cursor.getString(0), "person", cursor.getInt(1));
       storage.add(element);
     }
 

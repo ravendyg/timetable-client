@@ -37,6 +37,7 @@ public class HttpService
 
         connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
+        connection.setConnectTimeout(5000);
         connection.connect();
 
         InputStream input = connection.getInputStream();
@@ -61,6 +62,10 @@ public class HttpService
         }
 
         dataSrt = buffer.toString();
+      }
+      catch (java.net.SocketTimeoutException e)
+      {
+        Log.e(tag, "error", e);
       }
       catch (IOException e)
       {

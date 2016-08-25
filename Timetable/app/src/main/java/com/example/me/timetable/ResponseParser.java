@@ -2,6 +2,8 @@ package com.example.me.timetable;
 
 import android.util.Log;
 
+import com.example.me.timetable.Adapters.EventElement;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -11,7 +13,7 @@ import org.json.JSONObject;
  */
 public class ResponseParser
 {
-  public static EventElement [] getElements (String rawJson)
+  public static EventElement[] getElements (String rawJson)
     throws JSONException
   {
     EventElement [] result;

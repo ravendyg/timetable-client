@@ -1,11 +1,11 @@
-package com.example.me.timetable;
+package com.example.me.timetable.Adapters;
 
 import java.io.Serializable;
 
 /**
  * Created by me on 24/08/16.
  */
-public class SearchElement implements Serializable
+public class SearchElement implements Serializable, Comparable<SearchElement>
 {
   public String text;
   public String type;
@@ -16,5 +16,10 @@ public class SearchElement implements Serializable
     text = _text;
     type = _type;
     id = _id;
+  }
+
+  public int compareTo (SearchElement el)
+  {
+    return text.compareTo(el.text);
   }
 }
