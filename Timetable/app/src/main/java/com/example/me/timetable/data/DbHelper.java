@@ -60,7 +60,7 @@ public class DbHelper extends SQLiteOpenHelper
     public static final String FULL_NAME = "full_name";
   }
 
-  private static final int DB_VERSION = 18;
+  private static final int DB_VERSION = 24;
 
   static final String DB_NAME = "timetable.db";
 

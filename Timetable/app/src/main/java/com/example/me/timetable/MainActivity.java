@@ -34,6 +34,7 @@ import com.example.me.timetable.data.DbHelper.groupEntry;
 import com.example.me.timetable.data.PeriodsService;
 
 import org.json.JSONException;
+import org.w3c.dom.Text;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -57,6 +58,8 @@ public class MainActivity extends AppCompatActivity
 
   private String [] times = PeriodsService.getTimes();
 
+  private TextView loader;
+
   ListView searchList;
 
   private int counter = 0;
@@ -69,12 +72,12 @@ public class MainActivity extends AppCompatActivity
 
     String syncData = "not connected";
     long now = (new Date()).getTime();
-    long timestamp = getTimestamp();
 
     if ( isOnline() )
     {
       for (int i = 0; i < times.length; i++)
       {
+        long timestamp = getTimestamp(i);
         new SyncData(i, now, timestamp).execute();
       }
     }
@@ -122,6 +125,9 @@ public class MainActivity extends AppCompatActivity
         }
     }
     );
+
+    loader = ((TextView) findViewById(R.id.loading_percent));
+    updateLoader("0%");
   }
 
   private void performSearch ()
@@ -176,7 +182,7 @@ public class MainActivity extends AppCompatActivity
         String type = ResponseParser.getType(syncData);
         output = ResponseParser.getElements(syncData);
         storeChanges(time, output, type);
-        setTimestamp(now);
+        setTimestamp(now, time);
       } catch (JSONException e)
       {
         Log.e(tag, "response is empty", e);
@@ -187,11 +193,19 @@ public class MainActivity extends AppCompatActivity
     protected void onPostExecute (String time)
     {
       counter++;
+
+      updateLoader( (counter * 100 / times.length) + "%" );
+
       if (counter == times.length)
       {
         refreshList();
       }
     }
+  }
+
+  private void updateLoader (String val)
+  {
+    loader.setText(val);
   }
 
   private void refreshList ()
@@ -225,6 +239,7 @@ public class MainActivity extends AppCompatActivity
 
     findViewById(R.id.loading_message).setVisibility(View.GONE);
     findViewById(R.id.loading_spinner).setVisibility(View.GONE);
+    findViewById(R.id.loading_percent).setVisibility(View.GONE);
     findViewById(R.id.search_view).setVisibility(View.VISIBLE);
 
     TextView view = (TextView) this.findViewById(R.id.search_bar);
@@ -244,14 +259,14 @@ public class MainActivity extends AppCompatActivity
     return netInfo != null && netInfo.isConnectedOrConnecting() && permissionCheck == PackageManager.PERMISSION_GRANTED;
   }
 
-  private long getTimestamp ()
+  private long getTimestamp (int counter)
   {
     // connect to db in write mode
     DbHelper mDbHelper = new DbHelper(this);
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
     String queryString = "SELECT " + DbHelper.timeEntry.TIMESTAMP + " FROM " + DbHelper.timeEntry.TABLE_NAME +
-      " WHERE " + DbHelper.timeEntry.COUNTER + " = 1;";
+      " WHERE " + DbHelper.timeEntry.COUNTER + " = " + counter + ";";
 
     Cursor cursor = db.rawQuery(queryString, null);
 
@@ -270,14 +285,14 @@ public class MainActivity extends AppCompatActivity
     return output;
   }
 
-  private void setTimestamp (long now)
+  private void setTimestamp (long now, int counter)
   {
     // connect to db in write mode
     DbHelper mDbHelper = new DbHelper(this);
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
     ContentValues values = new ContentValues();
-    values.put(DbHelper.timeEntry.COUNTER, 1);
+    values.put(DbHelper.timeEntry.COUNTER, counter);
     values.put(DbHelper.timeEntry.TIMESTAMP, now);
 
     db.insert(DbHelper.timeEntry.TABLE_NAME, null, values);
