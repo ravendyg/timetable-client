@@ -31,6 +31,7 @@ import com.example.me.timetable.data.DbHelper;
 import com.example.me.timetable.data.DbHelper.dataEntry;
 import com.example.me.timetable.data.DbHelper.personEntry;
 import com.example.me.timetable.data.DbHelper.groupEntry;
+import com.example.me.timetable.data.PeriodsService;
 
 import org.json.JSONException;
 
@@ -54,11 +55,11 @@ public class MainActivity extends AppCompatActivity
 
   private ArrayList<SearchElement> searchResults = new ArrayList<SearchElement>(Arrays.asList(new SearchElement[0]));
 
+  private String [] times = PeriodsService.getTimes();
+
   ListView searchList;
 
   private int counter = 0;
-
-  String [] times = new String [] {"9:00", "10:50", "12:40", "14:30", "16:20", "18:10", "20:00"};
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -74,7 +75,7 @@ public class MainActivity extends AppCompatActivity
     {
       for (int i = 0; i < times.length; i++)
       {
-        new SyncData(times[i], now, timestamp).execute();
+        new SyncData(i, now, timestamp).execute();
       }
     }
     else
@@ -114,7 +115,6 @@ public class MainActivity extends AppCompatActivity
         public void onItemClick (AdapterView<?> adapterView, View view, int position, long id)
         {
           SearchElement element = searchAdapter.getElement(position);
-          Log.e("adapter click", element.text);
 
           Intent tableIntent = new Intent(MainActivity.this, TableActivity.class);
           tableIntent.putExtra("data", element);
@@ -124,16 +124,8 @@ public class MainActivity extends AppCompatActivity
     );
   }
 
-  public void onStart ()
-  {
-    super.onStart();
-    Log.e(tag, "start");
-  }
-
   private void performSearch ()
   {
-    Log.e(tag, searchBar.getText().toString());
-
     SearchElement value;
     String input = searchBar.getText().toString();
 
@@ -162,9 +154,9 @@ public class MainActivity extends AppCompatActivity
 
     private long now, timestamp;
 
-    private String time;
+    private int time;
 
-    public SyncData (String timeData, long nowT, long tmsp)
+    public SyncData (int timeData, long nowT, long tmsp)
     {
       time = timeData;
       now = nowT;
@@ -174,7 +166,7 @@ public class MainActivity extends AppCompatActivity
     protected String doInBackground (URL... urls)
     {
       String syncData;
-      syncData = new HttpService().getSync(time, timestamp);
+      syncData = new HttpService().getSync(times[time], timestamp);
 
       EventElement[] output;
 
@@ -185,7 +177,6 @@ public class MainActivity extends AppCompatActivity
         output = ResponseParser.getElements(syncData);
         storeChanges(time, output, type);
         setTimestamp(now);
-        Log.e(tag, time + ": " + syncData);
       } catch (JSONException e)
       {
         Log.e(tag, "response is empty", e);
@@ -195,8 +186,6 @@ public class MainActivity extends AppCompatActivity
 
     protected void onPostExecute (String time)
     {
-      Log.e(tag, time);
-
       counter++;
       if (counter == times.length)
       {
@@ -296,7 +285,7 @@ public class MainActivity extends AppCompatActivity
     db.close();
   }
 
-  private void storeChanges (String time, EventElement [] data, String type)
+  private void storeChanges (int time, EventElement [] data, String type)
   {
     // connect to location db in write mode
     DbHelper mDbHelper = new DbHelper(this);
@@ -338,7 +327,7 @@ public class MainActivity extends AppCompatActivity
     }
   }
 
-  private void insertNewEvent (SQLiteDatabase db, EventElement data, String time)
+  private void insertNewEvent (SQLiteDatabase db, EventElement data, int time)
   {
     ContentValues event = new ContentValues();
     event.put(dataEntry.TIME, time);

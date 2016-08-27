@@ -27,7 +27,7 @@ public class ResponseParser
         JSONObject elem = list.getJSONObject(i);
         result[i] =
           new EventElement(
-            elem.getInt("d"),
+            elem.getInt("d")-1,
             elem.getString("p"),
             elem.getString("g"),
             elem.getString("n"),

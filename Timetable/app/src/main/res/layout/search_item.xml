@@ -9,6 +9,7 @@
     android:minHeight="?android:attr/listPreferredItemHeight"
     android:gravity="center_vertical"
     android:text=""
+    android:textSize="@dimen/h3_font_size"
     >
 
 </TextView>

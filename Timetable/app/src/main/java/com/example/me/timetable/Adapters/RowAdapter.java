@@ -1,6 +1,7 @@
 package com.example.me.timetable.Adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,6 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.example.me.timetable.R;
+import com.example.me.timetable.data.PeriodsService;
 
 import java.util.ArrayList;
 
@@ -16,9 +18,15 @@ import java.util.ArrayList;
  */
 public class RowAdapter extends BaseAdapter
 {
+  private static final int TYPE_MAX_COUNT = 2;
+
+  private static final int TYPE_ITEM = 0;
+  private static final int TYPE_SEPARATOR = 1;
+
   private Context ctx;
   private LayoutInflater inflater;
   private ArrayList<RowElement> items;
+  private String [] times = PeriodsService.getTimes();
 
   public RowAdapter (Context context, ArrayList<RowElement> data)
   {
@@ -64,19 +72,51 @@ public class RowAdapter extends BaseAdapter
   public View getView (int position, View _view, ViewGroup parent)
   {
     View view = _view;
-    if (view == null)
-    {
-      view = inflater.inflate(R.layout.row_item, parent, false);
-    }
+
+    int type = getItemViewType(position);
 
     RowElement element = getElement(position);
 
-    ((TextView) view.findViewById(R.id.row_time)).setText(element.time);
-    ((TextView) view.findViewById(R.id.row_title)).setText(element.title);
-    ((TextView) view.findViewById(R.id.row_place)).setText(element.place);
-    ((TextView) view.findViewById(R.id.row_person)).setText(element.person);
+    if (view == null)
+    {
+      switch (type)
+      {
+        case TYPE_ITEM:
+          view = inflater.inflate(R.layout.row_item, parent, false);
+        break;
+
+        case TYPE_SEPARATOR:
+          view = inflater.inflate(R.layout.row_header, parent, false);
+        break;
+      }
+    }
+
+    switch (type)
+    {
+      case TYPE_ITEM:
+        ((TextView) view.findViewById(R.id.row_time)).setText(times[element.time]);
+        ((TextView) view.findViewById(R.id.row_title)).setText(element.title);
+        ((TextView) view.findViewById(R.id.row_place)).setText(element.place);
+        ((TextView) view.findViewById(R.id.row_person)).setText(element.person);
+        break;
+
+      case TYPE_SEPARATOR:
+        ((TextView) view.findViewById(R.id.row_header)).setText(element.title);
+        break;
+    }
 
     return view;
+  }
+
+  @Override
+  public int getViewTypeCount() {
+    return TYPE_MAX_COUNT;
+  }
+
+  @Override
+  public int getItemViewType(int position) {
+    int type = position % (1 + PeriodsService.getTimes().length);
+    return type == 0 ? TYPE_SEPARATOR : TYPE_ITEM;
   }
 }
 

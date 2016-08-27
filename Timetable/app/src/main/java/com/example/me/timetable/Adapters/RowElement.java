@@ -5,12 +5,12 @@ package com.example.me.timetable.Adapters;
  */
 public class RowElement
 {
-  public String time;
+  public int time;
   public String title;
   public String place;
   public String person;
 
-  public RowElement (String _time, String _title, String _place, String _person)
+  public RowElement (int _time, String _title, String _place, String _person)
   {
     time = _time;
     title = _title;

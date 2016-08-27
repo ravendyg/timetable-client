@@ -4,7 +4,6 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
-import android.util.Log;
 
 /**
  * Created by me on 21/08/16.
@@ -61,7 +60,7 @@ public class DbHelper extends SQLiteOpenHelper
     public static final String FULL_NAME = "full_name";
   }
 
-  private static final int DB_VERSION = 16;
+  private static final int DB_VERSION = 18;
 
   static final String DB_NAME = "timetable.db";
 
@@ -77,7 +76,7 @@ public class DbHelper extends SQLiteOpenHelper
       "CREATE TABLE " + dataEntry.TABLE_NAME + " (" +
         dataEntry._ID         + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
         dataEntry.DAY         + " INTEGER NOT NULL, " +
-        dataEntry.TIME        + " TEXT NOT NULL, " +
+        dataEntry.TIME        + " INTEGER NOT NULL, " +
         dataEntry.PLACE       + " TEXT NOT NULL, " +
         dataEntry.NAME        + " TEXT NOT NULL, " +
         dataEntry.GROUP       + " TEXT NOT NULL, " +
@@ -116,8 +115,6 @@ public class DbHelper extends SQLiteOpenHelper
     db.execSQL(CREATE_TABLE_TABLE);
     db.execSQL(CREATE_GROUPS_TABLE);
     db.execSQL(CREATE_PEOPLE_TABLE);
-
-//    Log.d("sql", CREATE_TABLE_TABLE);
   }
 
   @Override
