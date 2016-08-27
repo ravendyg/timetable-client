@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity
 
   private ArrayList<SearchElement> storage = new ArrayList<SearchElement>(Arrays.asList(new SearchElement[0]));
 
-  private ArrayList<SearchElement> temp = new ArrayList<SearchElement>(Arrays.asList(new SearchElement[0]));
+  private ArrayList<SearchElement> searchResults = new ArrayList<SearchElement>(Arrays.asList(new SearchElement[0]));
 
   ListView searchList;
 
@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity
 
     searchList = (ListView) this.findViewById(R.id.list_view);
 
-    searchAdapter = new SearchAdapter(this, temp);
+    searchAdapter = new SearchAdapter(this, searchResults);
     searchList.setAdapter(searchAdapter);
 
     searchList.setOnItemClickListener(
@@ -121,15 +121,20 @@ public class MainActivity extends AppCompatActivity
     );
   }
 
+  public void onStart ()
+  {
+    super.onStart();
+    Log.e(tag, "start");
+  }
+
   private void performSearch ()
   {
     Log.e(tag, searchBar.getText().toString());
 
-    ArrayList<SearchElement> matching = new ArrayList<SearchElement>(Arrays.asList(new SearchElement[0]));
     SearchElement value;
     String input = searchBar.getText().toString();
 
-    searchAdapter.clear();
+    searchResults.clear();
 
     // no empty search input
     if (input.length() > 0)
@@ -139,12 +144,12 @@ public class MainActivity extends AppCompatActivity
         value = storage.get(i);
         if (value.text.toLowerCase().contains(input.toLowerCase()))
         {
-          matching.add(value);
+          searchResults.add(value);
         }
       }
 
-      Collections.sort(matching);
-      searchAdapter.addAll(matching);
+      Collections.sort(searchResults);
+      searchAdapter.notifyDataSetChanged();
     }
   }
 

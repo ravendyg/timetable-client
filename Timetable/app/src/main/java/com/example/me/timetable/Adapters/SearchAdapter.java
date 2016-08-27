@@ -46,7 +46,14 @@ public class SearchAdapter extends BaseAdapter
 
   public void addAll (ArrayList<SearchElement> list)
   {
-    items.addAll(list);
+    if (list.size() > 1)
+    {
+      items.addAll(list);
+    }
+    else if (list.size() == 1)
+    {
+      items.add(list.get(0));
+    }
   }
 
   @Override
