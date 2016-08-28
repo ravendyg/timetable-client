@@ -18,9 +18,10 @@ import java.util.ArrayList;
  */
 public class RowAdapter extends BaseAdapter
 {
-  private static final int TYPE_MAX_COUNT = 2;
+  private static final int TYPE_MAX_COUNT = 3;
 
   private static final int TYPE_ITEM = 0;
+  private static final int TYPE_DOUBLE_ITEM = 2;
   private static final int TYPE_SEPARATOR = 1;
 
   private Context ctx;
@@ -85,42 +86,66 @@ public class RowAdapter extends BaseAdapter
           view = inflater.inflate(R.layout.row_item, parent, false);
         break;
 
+        case TYPE_DOUBLE_ITEM:
+          view = inflater.inflate(R.layout.row_double_item, parent, false);
+          break;
+
         case TYPE_SEPARATOR:
           view = inflater.inflate(R.layout.row_header, parent, false);
         break;
       }
     }
 
-    int typeIndex = 0;
-    if (element.type == 2)
-    {
-      typeIndex = 1;
-    }
-
     switch (type)
     {
       case TYPE_ITEM:
-        ((TextView) view.findViewById(R.id.row_time)).setText(times[element.time[typeIndex]]);
-        ((TextView) view.findViewById(R.id.row_title)).setText(element.title[typeIndex]);
-        ((TextView) view.findViewById(R.id.row_place)).setText(element.place[typeIndex]);
-        ((TextView) view.findViewById(R.id.row_person)).setText(element.person[typeIndex]);
-        break;
+        ((TextView) view.findViewById(R.id.row_time)).setText(times[element.time]);
+        ((TextView) view.findViewById(R.id.row_title)).setText(element.title[0]);
+        ((TextView) view.findViewById(R.id.row_place)).setText(element.place[0]);
+        ((TextView) view.findViewById(R.id.row_person)).setText(element.person[0]);
+      break;
+
+      case TYPE_DOUBLE_ITEM:
+        ((TextView) view.findViewById(R.id.row_time)).setText(times[element.time]);
+        ((TextView) view.findViewById(R.id.row_title1)).setText(element.title[0]);
+        ((TextView) view.findViewById(R.id.row_place1)).setText(element.place[0]);
+        ((TextView) view.findViewById(R.id.row_person1)).setText(element.person[0]);
+        ((TextView) view.findViewById(R.id.row_title2)).setText(element.title[1]);
+        ((TextView) view.findViewById(R.id.row_place2)).setText(element.place[1]);
+        ((TextView) view.findViewById(R.id.row_person2)).setText(element.person[1]);
+      break;
 
       case TYPE_SEPARATOR:
-        ((TextView) view.findViewById(R.id.row_header)).setText(element.title[typeIndex]);
-        break;
+        ((TextView) view.findViewById(R.id.row_header)).setText(element.title[0]);
+      break;
     }
 
     return view;
   }
 
   @Override
-  public int getViewTypeCount() {
+  public int getViewTypeCount()
+  {
     return TYPE_MAX_COUNT;
   }
 
   @Override
-  public int getItemViewType(int position) {
+  public int getItemViewType(int position)
+  {
+    RowElement element = getElement(position);
+
+    // rows with data
+    switch (element.type)
+    {
+      case 0:
+        return TYPE_ITEM;
+      case 1:
+      case 2:
+      case 3:
+        return TYPE_DOUBLE_ITEM;
+    }
+
+    // rows without data - either headers or just empty
     int type = position % (1 + PeriodsService.getTimes().length);
     return type == 0 ? TYPE_SEPARATOR : TYPE_ITEM;
   }

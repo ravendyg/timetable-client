@@ -5,7 +5,7 @@ package com.example.me.timetable.Adapters;
  */
 public class RowElement
 {
-  public int [] time = new int [2];
+  public int time;
   public String [] title = new String [] {"", ""};
   public String [] place = new String [] {"", ""};
   public String [] person = new String [] {"", ""};
@@ -19,12 +19,12 @@ public class RowElement
   public void addElement (int _time, String _title, String _place, String _person, int position)
   {
     int index =
-            position == 1 || position == 2
-                    ? position - 1
-                    : 0
-            ;
+      position == 1 || position == 2
+        ? position - 1
+        : 0
+      ;
 
-    time[0] = time[1] = _time;
+    time = _time;
 
     title[index] = _title;
     place[index] = _place;

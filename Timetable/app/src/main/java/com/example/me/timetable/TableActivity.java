@@ -86,7 +86,7 @@ public class TableActivity extends AppCompatActivity
     {
       queryString =
         "SELECT " + dataEntry.TIME + ", " + dataEntry.NAME + ", " + dataEntry.PLACE + ", " + dataEntry.PERSON +
-                ", " + dataEntry.DAY + ", " + dataEntry.GROUP + ", " + dataEntry.POSITION +
+                ", " + dataEntry.DAY + ", " + dataEntry.POSITION +
         " FROM " + dataEntry.TABLE_NAME +
         " WHERE " + dataEntry.GROUP + " LIKE '" + element.text + "'" +
         " ORDER BY " + dataEntry.TIME + " ASC " +
@@ -124,7 +124,7 @@ public class TableActivity extends AppCompatActivity
           cursor.getString(1),
           cursor.getString(2),
           cursor.getString(3),
-          cursor.getInt(4)
+          cursor.getInt(5)
         );
     }
 
