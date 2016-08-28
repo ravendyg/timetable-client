@@ -315,7 +315,6 @@ public class MainActivity extends AppCompatActivity
         if (data[k].status == 1)
         {
           long res = insertNewEvent(db, data[k], time);
-          Log.e("insert", ""+res);
 
           ContentValues person = new ContentValues();
           person.put(DbHelper.personEntry.PERSON_ID, data[k].personId);

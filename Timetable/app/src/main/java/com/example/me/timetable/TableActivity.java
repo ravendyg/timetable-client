@@ -91,25 +91,15 @@ public class TableActivity extends AppCompatActivity
         " WHERE " + dataEntry.GROUP + " LIKE '" + element.text + "'" +
         " ORDER BY " + dataEntry.TIME + " ASC " +
         ";";
-//      "SELECT COUNT(" + dataEntry.NAME + ") FROM " + dataEntry.TABLE_NAME + ";";
     }
     else
     {
       queryString =
-//        "SELECT " + dataEntry.TIME +
-//                ", GROUP_CONCAT(" + dataEntry.NAME  + ", '|') AS " + dataEntry.NAME +
-//                ", GROUP_CONCAT(" + dataEntry.PLACE + ", '|') AS " + dataEntry.PLACE +
-//                ", GROUP_CONCAT(" + dataEntry.GROUP + ", '|') AS " + dataEntry.GROUP +
-//                ", " + dataEntry.DAY +
-//        " FROM " +
-//          "(" +
             "SELECT " + dataEntry.TIME + ", " + dataEntry.NAME +", " + dataEntry.PLACE + ", " + dataEntry.GROUP +
-                  ", " + dataEntry.DAY +
+                  ", " + dataEntry.DAY + ", " + dataEntry.POSITION +
             " FROM " + dataEntry.TABLE_NAME +
             " WHERE " + dataEntry.PERSON_ID + "='" + element.id + "'" +
-            " ORDER BY " + dataEntry.TIME + " DESC, " + dataEntry.GROUP + " DESC" +
-//          ")" +
-//        "GROUP BY " + dataEntry.TIME + ", " + dataEntry.DAY +
+            " ORDER BY " + dataEntry.TIME + " ASC, " + dataEntry.GROUP + " DESC" +
         ";";
     }
 

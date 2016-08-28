@@ -28,7 +28,7 @@ public class RowElement
 
     title[index] = _title;
     place[index] = _place;
-    person[index] =_person;
+    person[index] = person[index].equals("") ? _person : person[index] + ", " + _person;
 
     if (position == -1)
     {
