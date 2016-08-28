@@ -12,6 +12,7 @@ public class EventElement
   public String person;
   public int personId;
   public String fullName;
+  public int position;
   public int status;
   public long timestamp;
 
@@ -23,6 +24,7 @@ public class EventElement
     String newPerson,
     int newPersonId,
     String newFullName,
+    int newPosition,
     int newStatus,
     long newTimestamp
   )
@@ -39,6 +41,7 @@ public class EventElement
       person = newPerson;
       personId = newPersonId;
       fullName = newFullName;
+      position = newPosition;
     }
     else
     {
@@ -46,6 +49,7 @@ public class EventElement
       person = "";
       personId = 0;
       fullName = "";
+      position = 0;
     }
   }
 }

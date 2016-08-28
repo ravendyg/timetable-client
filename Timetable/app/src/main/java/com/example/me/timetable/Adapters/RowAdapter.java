@@ -91,17 +91,23 @@ public class RowAdapter extends BaseAdapter
       }
     }
 
+    int typeIndex = 0;
+    if (element.type == 2)
+    {
+      typeIndex = 1;
+    }
+
     switch (type)
     {
       case TYPE_ITEM:
-        ((TextView) view.findViewById(R.id.row_time)).setText(times[element.time]);
-        ((TextView) view.findViewById(R.id.row_title)).setText(element.title);
-        ((TextView) view.findViewById(R.id.row_place)).setText(element.place);
-        ((TextView) view.findViewById(R.id.row_person)).setText(element.person);
+        ((TextView) view.findViewById(R.id.row_time)).setText(times[element.time[typeIndex]]);
+        ((TextView) view.findViewById(R.id.row_title)).setText(element.title[typeIndex]);
+        ((TextView) view.findViewById(R.id.row_place)).setText(element.place[typeIndex]);
+        ((TextView) view.findViewById(R.id.row_person)).setText(element.person[typeIndex]);
         break;
 
       case TYPE_SEPARATOR:
-        ((TextView) view.findViewById(R.id.row_header)).setText(element.title);
+        ((TextView) view.findViewById(R.id.row_header)).setText(element.title[typeIndex]);
         break;
     }
 

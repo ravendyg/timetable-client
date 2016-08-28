@@ -24,6 +24,8 @@ public class DbHelper extends SQLiteOpenHelper
 
     public static final String GROUP = "group_id";
 
+    public static final String POSITION = "position";
+
     public static final String PERSON = "person";
 
     public static final String PERSON_ID = "person_id";
@@ -60,7 +62,7 @@ public class DbHelper extends SQLiteOpenHelper
     public static final String FULL_NAME = "full_name";
   }
 
-  private static final int DB_VERSION = 24;
+  private static final int DB_VERSION = 38;
 
   static final String DB_NAME = "timetable.db";
 
@@ -80,6 +82,7 @@ public class DbHelper extends SQLiteOpenHelper
         dataEntry.PLACE       + " TEXT NOT NULL, " +
         dataEntry.NAME        + " TEXT NOT NULL, " +
         dataEntry.GROUP       + " TEXT NOT NULL, " +
+        dataEntry.POSITION    + " INTEGER NOT NULL, " +
         dataEntry.PERSON      + " TEXT NOT NULL, " +
         dataEntry.PERSON_ID   + " INTEGER NOT NULL, " +
         dataEntry.FULL_NAME   + " TEXT NOT NULL, " +
@@ -88,7 +91,7 @@ public class DbHelper extends SQLiteOpenHelper
 
         "UNIQUE (" +
           dataEntry.DAY + ", "  + dataEntry.TIME + ", " +
-          dataEntry.PLACE + /*", " + dataEntry.TIMESTAMP +*/
+          dataEntry.PLACE + ", " + dataEntry.GROUP +
         ") ON CONFLICT REPLACE);";
 
     final String CREATE_STAMP_TABLE =

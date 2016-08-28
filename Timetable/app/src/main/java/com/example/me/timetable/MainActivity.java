@@ -58,6 +58,8 @@ public class MainActivity extends AppCompatActivity
 
   private String [] times = PeriodsService.getTimes();
 
+  private int timesLength = times.length;
+
   private TextView loader;
 
   ListView searchList;
@@ -75,7 +77,7 @@ public class MainActivity extends AppCompatActivity
 
     if ( isOnline() )
     {
-      for (int i = 0; i < times.length; i++)
+      for (int i = 0; i < timesLength; i++)
       {
         long timestamp = getTimestamp(i);
         new SyncData(i, now, timestamp).execute();
@@ -194,9 +196,9 @@ public class MainActivity extends AppCompatActivity
     {
       counter++;
 
-      updateLoader( (counter * 100 / times.length) + "%" );
+      updateLoader( (counter * 100 / timesLength) + "%" );
 
-      if (counter == times.length)
+      if (counter == timesLength)
       {
         refreshList();
       }
@@ -312,7 +314,8 @@ public class MainActivity extends AppCompatActivity
       {
         if (data[k].status == 1)
         {
-          insertNewEvent(db, data[k], time);
+          long res = insertNewEvent(db, data[k], time);
+          Log.e("insert", ""+res);
 
           ContentValues person = new ContentValues();
           person.put(DbHelper.personEntry.PERSON_ID, data[k].personId);
@@ -342,7 +345,7 @@ public class MainActivity extends AppCompatActivity
     }
   }
 
-  private void insertNewEvent (SQLiteDatabase db, EventElement data, int time)
+  private long insertNewEvent (SQLiteDatabase db, EventElement data, int time)
   {
     ContentValues event = new ContentValues();
     event.put(dataEntry.TIME, time);
@@ -353,10 +356,12 @@ public class MainActivity extends AppCompatActivity
     event.put(dataEntry.PERSON, data.person);
     event.put(dataEntry.PERSON_ID, data.personId);
     event.put(dataEntry.FULL_NAME, data.fullName);
+    event.put(dataEntry.POSITION, data.position);
     event.put(dataEntry.STATUS, data.status);
     event.put(dataEntry.TIMESTAMP, data.timestamp);
 
-    db.insert(dataEntry.TABLE_NAME, null, event);
+    long out = db.insert(dataEntry.TABLE_NAME, null, event);
+    return out;
   }
 }
 

@@ -25,19 +25,26 @@ public class ResponseParser
       for (int i = 0; i < list.length(); i++)
       {
         JSONObject elem = list.getJSONObject(i);
-        result[i] =
-          new EventElement(
-            elem.getInt("d")-1,
-            elem.getString("p"),
-            elem.getString("g"),
-            elem.getString("n"),
-            elem.getString("pn"),
-            elem.getInt("pi"),
-            elem.getString("f"),
-            elem.getInt("s"),
-            elem.getLong("ts")
-          );
-
+        try
+        {
+          result[i] =
+            new EventElement(
+              elem.getInt("d") - 1,
+              elem.getString("p"),
+              elem.getString("g"),
+              elem.getString("n"),
+              elem.getString("pn"),
+              elem.getInt("pi"),
+              elem.getString("f"),
+              elem.getInt("ps"),
+              elem.getInt("s"),
+              elem.getLong("ts")
+            );
+        }
+        catch (JSONException e)
+        {
+          Log.e("parser", "read element", e);
+        }
       }
     }
     catch (JSONException e)

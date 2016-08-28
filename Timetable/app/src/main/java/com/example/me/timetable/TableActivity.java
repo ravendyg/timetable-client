@@ -65,9 +65,7 @@ public class TableActivity extends AppCompatActivity
       items[j] =
         new RowElement (
           time,
-          time == -1 ? PeriodsService.getDays()[j / (1 + timesLength)] : "",
-          "",
-          ""
+          time == -1 ? PeriodsService.getDays()[j / (1 + timesLength)] : ""
         );
     }
 
@@ -88,20 +86,30 @@ public class TableActivity extends AppCompatActivity
     {
       queryString =
         "SELECT " + dataEntry.TIME + ", " + dataEntry.NAME + ", " + dataEntry.PLACE + ", " + dataEntry.PERSON +
-                ", " + dataEntry.DAY +
+                ", " + dataEntry.DAY + ", " + dataEntry.GROUP + ", " + dataEntry.POSITION +
         " FROM " + dataEntry.TABLE_NAME +
-        " WHERE " + dataEntry.GROUP + "='" + element.text + "'" +
+        " WHERE " + dataEntry.GROUP + " LIKE '" + element.text + "'" +
         " ORDER BY " + dataEntry.TIME + " ASC " +
         ";";
+//      "SELECT COUNT(" + dataEntry.NAME + ") FROM " + dataEntry.TABLE_NAME + ";";
     }
     else
     {
       queryString =
-        "SELECT " + dataEntry.TIME + ", " + dataEntry.NAME +", " + dataEntry.PLACE + ", " + dataEntry.PERSON +
-                ", " + dataEntry.DAY +
-        " FROM " + dataEntry.TABLE_NAME +
-        " WHERE " + dataEntry.PERSON_ID + "='" + element.id + "'" +
-        " ORDER BY " + dataEntry.TIME + " DESC " +
+//        "SELECT " + dataEntry.TIME +
+//                ", GROUP_CONCAT(" + dataEntry.NAME  + ", '|') AS " + dataEntry.NAME +
+//                ", GROUP_CONCAT(" + dataEntry.PLACE + ", '|') AS " + dataEntry.PLACE +
+//                ", GROUP_CONCAT(" + dataEntry.GROUP + ", '|') AS " + dataEntry.GROUP +
+//                ", " + dataEntry.DAY +
+//        " FROM " +
+//          "(" +
+            "SELECT " + dataEntry.TIME + ", " + dataEntry.NAME +", " + dataEntry.PLACE + ", " + dataEntry.GROUP +
+                  ", " + dataEntry.DAY +
+            " FROM " + dataEntry.TABLE_NAME +
+            " WHERE " + dataEntry.PERSON_ID + "='" + element.id + "'" +
+            " ORDER BY " + dataEntry.TIME + " DESC, " + dataEntry.GROUP + " DESC" +
+//          ")" +
+//        "GROUP BY " + dataEntry.TIME + ", " + dataEntry.DAY +
         ";";
     }
 
@@ -110,8 +118,14 @@ public class TableActivity extends AppCompatActivity
     while (cursor.moveToNext())
     {
       // day * number of rows per day + time
-      items[cursor.getInt(4) * (1 + timesLength) + cursor.getInt(0) + 1] =
-        new RowElement(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3));
+      items[cursor.getInt(4) * (1 + timesLength) + cursor.getInt(0) + 1]
+      .addElement(
+          cursor.getInt(0),
+          cursor.getString(1),
+          cursor.getString(2),
+          cursor.getString(3),
+          cursor.getInt(4)
+        );
     }
 
     list.addAll(

@@ -11,9 +11,14 @@
         android:gravity="center_vertical|center"
         android:textSize="@dimen/header_font_size"
     />
-    <LinearLayout
+    <TextView
         android:layout_width="0dp"
         android:layout_weight="1"
+        android:layout_height="match_parent"
+    />
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_weight="2"
         android:layout_height="wrap_content"
         android:orientation="vertical"
     >
@@ -37,5 +42,10 @@
             android:textSize="@dimen/regular_font_size"
         />
     </LinearLayout>
+    <TextView
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="match_parent"
+    />
 
 </LinearLayout>
