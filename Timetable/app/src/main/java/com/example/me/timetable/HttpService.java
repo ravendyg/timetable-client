@@ -18,7 +18,7 @@ public class HttpService
 {
   private final String tag = "http service";
 
-  private final String SYNC_API_URL = "http://192.168.1.157:3011/sync";
+  private final String SYNC_API_URL = "http://timetable.nskgortrans.info/sync";
 
   public String getSync (String time, long timestamp)
   {

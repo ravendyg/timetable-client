@@ -13,7 +13,7 @@
         />
     <LinearLayout
         android:layout_width="0dp"
-        android:layout_weight="5"
+        android:layout_weight="10"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         >
@@ -21,21 +21,27 @@
             android:id="@+id/row_title1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="@dimen/h3_font_size"
+
             android:textStyle="bold"
+            android:gravity="left"
             />
+        <!--android:textSize="@dimen/h3_font_size"-->
         <TextView
             android:id="@+id/row_place1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="@dimen/regular_font_size"
+
+            android:gravity="left"
             />
+        <!--android:textSize="@dimen/regular_font_size"-->
         <TextView
             android:id="@+id/row_person1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="@dimen/regular_font_size"
+
+            android:gravity="left"
             />
+        <!--android:textSize="@dimen/regular_font_size"-->
     </LinearLayout>
     <TextView
         android:layout_width="0dp"
@@ -44,7 +50,7 @@
         />
     <LinearLayout
         android:layout_width="0dp"
-        android:layout_weight="5"
+        android:layout_weight="10"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         >
@@ -52,21 +58,32 @@
             android:id="@+id/row_title2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="@dimen/h3_font_size"
+
             android:textStyle="bold"
+            android:gravity="right"
             />
+        <!--android:textSize="@dimen/h3_font_size"-->
         <TextView
             android:id="@+id/row_place2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="@dimen/regular_font_size"
+
+            android:gravity="right"
             />
+        <!--android:textSize="@dimen/regular_font_size"-->
         <TextView
             android:id="@+id/row_person2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="@dimen/regular_font_size"
+
+            android:gravity="right"
             />
+        <!--android:textSize="@dimen/regular_font_size"-->
     </LinearLayout>
+    <TextView
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="match_parent"
+    />
 
 </LinearLayout>

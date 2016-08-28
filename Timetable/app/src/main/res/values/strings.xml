@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Timetable</string>
+    <string name="app_name">Расписание НГУ</string>
 
     <string name="pref_refresh" translatable="false">pref_refresh</string>
     <string name="search_hint">Группа или фамилия</string>
