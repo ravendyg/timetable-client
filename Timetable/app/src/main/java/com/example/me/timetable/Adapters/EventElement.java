@@ -6,6 +6,7 @@ package com.example.me.timetable.Adapters;
 public class EventElement
 {
   public int day;
+  public String time;
   public String place;
   public String name;
   public String group;
@@ -18,6 +19,7 @@ public class EventElement
 
   public EventElement (
     int newDay,
+    String newTime,
     String newPlace,
     String newGroup,
     String newName,
@@ -30,7 +32,8 @@ public class EventElement
   )
   {
     day = newDay;
-    place= newPlace;
+    time = newTime;
+    place = newPlace;
     group = newGroup;
     status = newStatus;
     timestamp = newTimestamp;

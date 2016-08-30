@@ -38,6 +38,8 @@ public class TableActivity extends AppCompatActivity
   private int daysLength = PeriodsService.getDays().length;
   private int timesLength = PeriodsService.getTimes().length;
 
+  private ArrayList<String> times = new ArrayList<String>(Arrays.asList(PeriodsService.getTimes() ));
+
   private RowElement [] items = new RowElement[daysLength * (1 + timesLength)];
 
   @Override
@@ -107,10 +109,11 @@ public class TableActivity extends AppCompatActivity
 
     while (cursor.moveToNext())
     {
+      int timePointer = times.indexOf( cursor.getString(0) );
       // day * number of rows per day + time
-      items[cursor.getInt(4) * (1 + timesLength) + cursor.getInt(0) + 1]
+      items[cursor.getInt(4) * (1 + timesLength) + timePointer + 1]
       .addElement(
-          cursor.getInt(0),
+          timePointer,
           cursor.getString(1),
           cursor.getString(2),
           cursor.getString(3),

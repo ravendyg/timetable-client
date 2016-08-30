@@ -27,16 +27,16 @@
         android:indeterminate="true"
     />
 
-    <TextView
-        android:id="@+id/loading_percent"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:layout_below="@id/loading_spinner"
-        android:layout_marginTop="@dimen/activity_vertical_margin"
-        android:textSize="24sp"
-    />
+    <!--<TextView-->
+        <!--android:id="@+id/loading_percent"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_centerHorizontal="true"-->
+        <!--android:layout_centerVertical="true"-->
+        <!--android:layout_below="@id/loading_spinner"-->
+        <!--android:layout_marginTop="@dimen/activity_vertical_margin"-->
+        <!--android:textSize="24sp"-->
+    <!--/>-->
 
     <LinearLayout
         android:id="@+id/search_view"

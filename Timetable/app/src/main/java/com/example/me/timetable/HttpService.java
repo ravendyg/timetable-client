@@ -18,9 +18,10 @@ public class HttpService
 {
   private final String tag = "http service";
 
-  private final String SYNC_API_URL = "http://timetable.nskgortrans.info/sync";
+//  private final String SYNC_API_URL = "http://timetable.nskgortrans.info/sync";
+  private final String SYNC_API_URL = "http://192.168.1.157:3011/sync";
 
-  public String getSync (String time, long timestamp)
+  public String getSync (long timestamp)
   {
     HttpURLConnection connection = null;
     BufferedReader reader = null;
@@ -30,7 +31,6 @@ public class HttpService
       try
       {
         Uri builtUri = Uri.parse(SYNC_API_URL).buildUpon()
-                .appendQueryParameter("time", time)
                 .appendQueryParameter("timestamp", "" + timestamp)
                 .build();
 

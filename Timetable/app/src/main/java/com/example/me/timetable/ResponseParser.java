@@ -30,6 +30,7 @@ public class ResponseParser
           result[i] =
             new EventElement(
               elem.getInt("d") - 1,
+              elem.getString("t"),
               elem.getString("p"),
               elem.getString("g"),
               elem.getString("n"),

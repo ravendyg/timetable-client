@@ -77,11 +77,11 @@ public class MainActivity extends AppCompatActivity
 
     if ( isOnline() )
     {
-      for (int i = 0; i < timesLength; i++)
-      {
-        long timestamp = getTimestamp(i);
-        new SyncData(i, now, timestamp).execute();
-      }
+//      for (int i = 0; i < timesLength; i++)
+//      {
+        long timestamp = getTimestamp();
+        new SyncData(now, timestamp).execute();
+//      }
     }
     else
     {
@@ -128,8 +128,6 @@ public class MainActivity extends AppCompatActivity
     }
     );
 
-    loader = ((TextView) findViewById(R.id.loading_percent));
-    updateLoader("0%");
   }
 
   private void performSearch ()
@@ -162,11 +160,8 @@ public class MainActivity extends AppCompatActivity
 
     private long now, timestamp;
 
-    private int time;
-
-    public SyncData (int timeData, long nowT, long tmsp)
+    public SyncData (long nowT, long tmsp)
     {
-      time = timeData;
       now = nowT;
       timestamp = tmsp;
     }
@@ -174,7 +169,7 @@ public class MainActivity extends AppCompatActivity
     protected String doInBackground (URL... urls)
     {
       String syncData;
-      syncData = new HttpService().getSync(times[time], timestamp);
+      syncData = new HttpService().getSync(timestamp);
 
       EventElement[] output;
 
@@ -183,8 +178,8 @@ public class MainActivity extends AppCompatActivity
       {
         String type = ResponseParser.getType(syncData);
         output = ResponseParser.getElements(syncData);
-        storeChanges(time, output, type);
-        setTimestamp(now, time);
+        storeChanges(output, type);
+        setTimestamp(now);
       } catch (JSONException e)
       {
         Log.e(tag, "response is empty", e);
@@ -194,20 +189,8 @@ public class MainActivity extends AppCompatActivity
 
     protected void onPostExecute (String time)
     {
-      counter++;
-
-      updateLoader( (counter * 100 / timesLength) + "%" );
-
-      if (counter == timesLength)
-      {
-        refreshList();
-      }
+      refreshList();
     }
-  }
-
-  private void updateLoader (String val)
-  {
-    loader.setText(val);
   }
 
   private void refreshList ()
@@ -241,7 +224,7 @@ public class MainActivity extends AppCompatActivity
 
     findViewById(R.id.loading_message).setVisibility(View.GONE);
     findViewById(R.id.loading_spinner).setVisibility(View.GONE);
-    findViewById(R.id.loading_percent).setVisibility(View.GONE);
+
     findViewById(R.id.search_view).setVisibility(View.VISIBLE);
 
     TextView view = (TextView) this.findViewById(R.id.search_bar);
@@ -261,14 +244,14 @@ public class MainActivity extends AppCompatActivity
     return netInfo != null && netInfo.isConnectedOrConnecting() && permissionCheck == PackageManager.PERMISSION_GRANTED;
   }
 
-  private long getTimestamp (int counter)
+  private long getTimestamp ()
   {
     // connect to db in write mode
     DbHelper mDbHelper = new DbHelper(this);
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
     String queryString = "SELECT " + DbHelper.timeEntry.TIMESTAMP + " FROM " + DbHelper.timeEntry.TABLE_NAME +
-      " WHERE " + DbHelper.timeEntry.COUNTER + " = " + counter + ";";
+      " WHERE " + DbHelper.timeEntry.COUNTER + " = " + 1 + ";";
 
     Cursor cursor = db.rawQuery(queryString, null);
 
@@ -287,14 +270,14 @@ public class MainActivity extends AppCompatActivity
     return output;
   }
 
-  private void setTimestamp (long now, int counter)
+  private void setTimestamp (long now)
   {
     // connect to db in write mode
     DbHelper mDbHelper = new DbHelper(this);
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
     ContentValues values = new ContentValues();
-    values.put(DbHelper.timeEntry.COUNTER, counter);
+    values.put(DbHelper.timeEntry.COUNTER, 1);
     values.put(DbHelper.timeEntry.TIMESTAMP, now);
 
     db.insert(DbHelper.timeEntry.TABLE_NAME, null, values);
@@ -302,52 +285,73 @@ public class MainActivity extends AppCompatActivity
     db.close();
   }
 
-  private void storeChanges (int time, EventElement [] data, String type)
+  private void storeChanges (EventElement [] data, String type)
   {
     // connect to location db in write mode
     DbHelper mDbHelper = new DbHelper(this);
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
-    for (int k = 0; k < data.length; k++)
+    if (data.length == 0)
     {
-      try
+      return;
+    }
+
+    db.beginTransaction();
+
+    try
+    {
+      if ( type.equals("new") )
+      { // remove all previous data
+        String query = "DELETE FROM " + dataEntry.TABLE_NAME + ";";
+        db.rawQuery(query, null);
+        query = "DELETE FROM " + personEntry.TABLE_NAME + ";";
+        db.rawQuery(query, null);
+        query = "DELETE FROM " + groupEntry.TABLE_NAME + ";";
+        db.rawQuery(query, null);
+      }
+
+      for (int k = 0; k < data.length; k++)
       {
-        if (data[k].status == 1)
+        try
         {
-          long res = insertNewEvent(db, data[k], time);
-
-          ContentValues person = new ContentValues();
-          person.put(DbHelper.personEntry.PERSON_ID, data[k].personId);
-          person.put(DbHelper.personEntry.FULL_NAME, data[k].fullName);
-          db.insert(DbHelper.personEntry.TABLE_NAME, null, person);
-
-          ContentValues group = new ContentValues();
-          group.put(DbHelper.groupEntry.NAME, data[k].group);
-          db.insert(DbHelper.groupEntry.TABLE_NAME, null, group);
-        }
-        else
+          if (data[k].status == 1)
+          {
+            insertNewEvent(db, data[k]);
+            insertNewGroup(db, data[k]);
+            insertNewPerson(db, data[k]);
+          }
+          else
+          {
+            String query =
+              "DELETE FROM " + dataEntry.TABLE_NAME +
+                " WHERE " +
+                  dataEntry.TIME + "=" + data[k].time +
+                  dataEntry.DAY + "=" + data[k].day +
+                  dataEntry.PLACE + "=" + data[k].place +
+              ";";
+            db.rawQuery(query, null);
+          }
+        } catch (Exception e)
         {
-          String query =
-            "DELETE FROM " + dataEntry.TABLE_NAME +
-              " WHERE " +
-                dataEntry.TIME + "=" + time +
-                dataEntry.DAY + "=" + data[k].day +
-                dataEntry.PLACE + "=" + data[k].place +
-            ";";
-          db.rawQuery(query, null);
+          Log.e(tag, "inserting event into db", e);
         }
       }
-      catch (Exception e)
-      {
-        Log.e(tag, "inserting event into db", e);
-      }
+      db.setTransactionSuccessful();
+    }
+    catch (Exception e)
+    {
+      Log.e("general insert", "", e);
+    }
+    finally
+    {
+      db.endTransaction();
     }
   }
 
-  private long insertNewEvent (SQLiteDatabase db, EventElement data, int time)
+  private void insertNewEvent (SQLiteDatabase db, EventElement data)
   {
     ContentValues event = new ContentValues();
-    event.put(dataEntry.TIME, time);
+    event.put(dataEntry.TIME, data.time);
     event.put(dataEntry.DAY, data.day);
     event.put(dataEntry.PLACE, data.place);
     event.put(dataEntry.NAME, data.name);
@@ -359,8 +363,24 @@ public class MainActivity extends AppCompatActivity
     event.put(dataEntry.STATUS, data.status);
     event.put(dataEntry.TIMESTAMP, data.timestamp);
 
-    long out = db.insert(dataEntry.TABLE_NAME, null, event);
-    return out;
+    db.insertWithOnConflict(dataEntry.TABLE_NAME, null, event,  SQLiteDatabase.CONFLICT_REPLACE);
+  }
+
+  private void insertNewPerson (SQLiteDatabase db, EventElement data)
+  {
+    ContentValues person = new ContentValues();
+    person.put(DbHelper.personEntry.PERSON_ID, data.personId);
+    person.put(DbHelper.personEntry.FULL_NAME, data.fullName);
+
+    db.insertWithOnConflict(DbHelper.personEntry.TABLE_NAME, null, person,  SQLiteDatabase.CONFLICT_REPLACE);
+  }
+
+  private void insertNewGroup (SQLiteDatabase db, EventElement data)
+  {
+    ContentValues group = new ContentValues();
+    group.put(groupEntry.NAME, data.group);
+
+    db.insertWithOnConflict(groupEntry.TABLE_NAME, null, group, SQLiteDatabase.CONFLICT_REPLACE);
   }
 }
 
