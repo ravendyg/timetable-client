@@ -72,16 +72,12 @@ public class MainActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-    String syncData = "not connected";
     long now = (new Date()).getTime();
 
     if ( isOnline() )
     {
-//      for (int i = 0; i < timesLength; i++)
-//      {
-        long timestamp = getTimestamp();
-        new SyncData(now, timestamp).execute();
-//      }
+      long timestamp = getTimestamp();
+      new SyncData(now, timestamp).execute();
     }
     else
     {
