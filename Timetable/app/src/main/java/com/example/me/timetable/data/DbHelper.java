@@ -51,6 +51,8 @@ public class DbHelper extends SQLiteOpenHelper
     public static final String TABLE_NAME = "groups";
 
     public static final String NAME = "name";
+
+    public static final String FAVORITE = "favorite";
   }
 
   public static class personEntry implements  BaseColumns
@@ -60,9 +62,11 @@ public class DbHelper extends SQLiteOpenHelper
     public static final String PERSON_ID = "person_id";
 
     public static final String FULL_NAME = "full_name";
+
+    public static final String FAVORITE = "favorite";
   }
 
-  private static final int DB_VERSION = 60;
+  private static final int DB_VERSION = 65;
 
   static final String DB_NAME = "timetable.db";
 
@@ -105,6 +109,7 @@ public class DbHelper extends SQLiteOpenHelper
       "CREATE TABLE " + groupEntry.TABLE_NAME + " (" +
 //        groupEntry._ID  + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
         groupEntry.NAME + " TEXT NOT NULL, " +
+        groupEntry.FAVORITE + " INTEGER NOT NULL DEFAULT 0, " +
         "UNIQUE (" + groupEntry.NAME + ") ON CONFLICT REPLACE);";
 
     final String CREATE_PEOPLE_TABLE =
@@ -112,6 +117,7 @@ public class DbHelper extends SQLiteOpenHelper
         personEntry._ID         + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
         personEntry.PERSON_ID   + " INTEGER NOT NULL, " +
         personEntry.FULL_NAME   + " TEXT NOT NULL, " +
+        personEntry.FAVORITE + " INTEGER NOT NULL DEFAULT 0, " +
         "UNIQUE (" + personEntry.PERSON_ID + ") ON CONFLICT REPLACE);";
 
     db.execSQL(CREATE_STAMP_TABLE);

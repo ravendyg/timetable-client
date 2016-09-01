@@ -1,5 +1,6 @@
 package com.example.me.timetable;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -7,6 +8,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -42,6 +44,8 @@ public class TableActivity extends AppCompatActivity
 
   private RowElement [] items = new RowElement[daysLength * (1 + timesLength)];
 
+  private ImageButton fav;
+
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
@@ -70,6 +74,68 @@ public class TableActivity extends AppCompatActivity
           time == -1 ? PeriodsService.getDays()[j / (1 + timesLength)] : ""
         );
     }
+
+    fav = (ImageButton) findViewById(R.id.fav_button);
+    if (element.fav == 0)
+    {
+      fav.setImageResource(R.mipmap.add_btn);
+    }
+    else
+    {
+      fav.setImageResource(R.mipmap.remove_btn);
+    }
+
+    fav.setOnClickListener(
+      new View.OnClickListener()
+      {
+        @Override
+        public void onClick(View view)
+        {
+          DbHelper mDbHelper = new DbHelper(getBaseContext());
+          SQLiteDatabase db = mDbHelper.getReadableDatabase();
+          String query;
+          int newVal;
+
+          if (element.fav == 0)
+          {
+            element.fav = 1;
+            fav.setImageResource(R.mipmap.remove_btn);
+            newVal = 1;
+          }
+          else
+          {
+            element.fav = 0;
+            fav.setImageResource(R.mipmap.add_btn);
+            newVal = 0;
+          }
+
+          ContentValues cv = new ContentValues();
+
+          if (element.type.equals("group"))
+          {
+            cv.put(DbHelper.groupEntry.FAVORITE, newVal);
+
+            db.update(
+              DbHelper.groupEntry.TABLE_NAME,
+              cv,
+              DbHelper.groupEntry.NAME + "=?",
+              new String[] {element.text}
+            );
+          }
+          else
+          {
+            cv.put(DbHelper.personEntry.FAVORITE, newVal);
+
+            db.update(
+                DbHelper.personEntry.TABLE_NAME,
+                cv,
+                DbHelper.personEntry.PERSON_ID + "=?",
+                new String[] {""+element.id}
+            );
+          }
+        }
+      }
+    );
 
     refreshList();
 

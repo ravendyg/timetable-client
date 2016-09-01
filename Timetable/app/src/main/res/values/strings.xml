@@ -4,5 +4,5 @@
     <string name="pref_refresh" translatable="false">pref_refresh</string>
     <string name="search_hint">Группа или фамилия</string>
     <string name="loading_message">Обновляю расписание</string>
-    <string name="loading_percent">0%</string>
+    <string name="favorites">Избранное</string>
 </resources>

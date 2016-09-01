@@ -52,6 +52,7 @@ public class RowAdapter extends BaseAdapter
   public void clear ()
   {
     items.clear();
+    notifyDataSetChanged();
   }
 
   public void addAll (ArrayList<RowElement> list)

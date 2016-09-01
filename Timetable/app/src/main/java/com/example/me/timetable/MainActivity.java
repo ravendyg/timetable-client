@@ -20,6 +20,8 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -48,23 +50,18 @@ public class MainActivity extends AppCompatActivity
 {
   private final String tag = this.getClass().getSimpleName();
 
-  private EditText searchBar;
+  private SearchAdapter adapter;
 
-  private SearchAdapter searchAdapter;
+  private SearchAdapter favoritesAdapter;
 
   private ArrayList<SearchElement> storage = new ArrayList<SearchElement>(Arrays.asList(new SearchElement[0]));
 
-  private ArrayList<SearchElement> searchResults = new ArrayList<SearchElement>(Arrays.asList(new SearchElement[0]));
+  private ArrayList<SearchElement> favorites = new ArrayList<SearchElement>(Arrays.asList(new SearchElement[0]));
 
-  private String [] times = PeriodsService.getTimes();
+  ListView favoritesList;
 
-  private int timesLength = times.length;
+  private int refreshed = 0;
 
-  private TextView loader;
-
-  ListView searchList;
-
-  private int counter = 0;
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -84,38 +81,20 @@ public class MainActivity extends AppCompatActivity
       refreshList();
     }
 
-    searchBar = (EditText) findViewById(R.id.search_bar);
-    searchBar.setOnEditorActionListener(
-      new EditText.OnEditorActionListener()
-      {
-        @Override
-        public boolean onEditorAction (TextView view, int actionId, KeyEvent event)
-        {
-          if (actionId == EditorInfo.IME_ACTION_DONE)
-          {
-            performSearch();
-            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    favoritesList = (ListView) this.findViewById(R.id.list_view);
 
-            return true;
-          }
-          return false;
-        }
-      }
-    );
+    favoritesAdapter = new SearchAdapter(this, favorites);
+    favoritesList.setAdapter(favoritesAdapter);
 
-    searchList = (ListView) this.findViewById(R.id.list_view);
+    adapter = new SearchAdapter(this, storage);
 
-    searchAdapter = new SearchAdapter(this, searchResults);
-    searchList.setAdapter(searchAdapter);
-
-    searchList.setOnItemClickListener(
+    favoritesList.setOnItemClickListener(
       new AdapterView.OnItemClickListener()
       {
         @Override
         public void onItemClick (AdapterView<?> adapterView, View view, int position, long id)
         {
-          SearchElement element = searchAdapter.getElement(position);
+          SearchElement element = favoritesAdapter.getElement(position);
 
           Intent tableIntent = new Intent(MainActivity.this, TableActivity.class);
           tableIntent.putExtra("data", element);
@@ -123,30 +102,15 @@ public class MainActivity extends AppCompatActivity
         }
     }
     );
-
   }
 
-  private void performSearch ()
+  @Override
+  public void onResume ()
   {
-    SearchElement value;
-    String input = searchBar.getText().toString();
-
-    searchResults.clear();
-
-    // no empty search input
-    if (input.length() > 0)
+    super.onResume();
+    if (refreshed > 0)
     {
-      for (int i = 0; i < storage.size(); i++)
-      {
-        value = storage.get(i);
-        if (value.text.toLowerCase().contains(input.toLowerCase()))
-        {
-          searchResults.add(value);
-        }
-      }
-
-      Collections.sort(searchResults);
-      searchAdapter.notifyDataSetChanged();
+      refreshList();
     }
   }
 
@@ -169,7 +133,6 @@ public class MainActivity extends AppCompatActivity
 
       EventElement[] output;
 
-      int resultLength = 0;
       try
       {
         String type = ResponseParser.getType(syncData);
@@ -194,39 +157,89 @@ public class MainActivity extends AppCompatActivity
     DbHelper mDbHelper = new DbHelper(this);
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
-    String queryString = "SELECT " + groupEntry.NAME + " FROM " + groupEntry.TABLE_NAME + ";";
+    storage.clear();
+    favorites.clear();
+
+    String queryString =
+      "SELECT " + groupEntry.NAME + ", " + groupEntry.FAVORITE +
+      " FROM " + groupEntry.TABLE_NAME + ";";
     Cursor cursor = db.rawQuery(queryString, null);
 
     while (cursor.moveToNext())
     {
-      SearchElement element = new SearchElement(cursor.getString(0), "group", 0);
+      SearchElement element = new SearchElement(cursor.getString(0), "group", 0, cursor.getInt(1));
       storage.add(element);
+
+      if (cursor.getInt(1) == 1)
+      {
+        favorites.add(element);
+      }
     }
 
     cursor.close();
 
     queryString =
-      "SELECT " + personEntry.FULL_NAME + ", " + personEntry.PERSON_ID +
+      "SELECT " + personEntry.FULL_NAME + ", " + personEntry.PERSON_ID + ", " + personEntry.FAVORITE +
       " FROM " + personEntry.TABLE_NAME + ";";
     cursor = db.rawQuery(queryString, null);
 
     while (cursor.moveToNext())
     {
-      SearchElement element = new SearchElement(cursor.getString(0), "person", cursor.getInt(1));
+      SearchElement element = new SearchElement(cursor.getString(0), "person", cursor.getInt(1), cursor.getInt(2));
       storage.add(element);
+
+      if (cursor.getInt(2) == 1)
+      {
+        favorites.add(element);
+      }
     }
 
     cursor.close();
+
+    adapter.notifyDataSetChanged();
+    favoritesAdapter.notifyDataSetChanged();
+
+    TextView favHeader = (TextView) findViewById(R.id.fav_header);
+    if (favoritesList.getCount() > 0)
+    {
+      favHeader.setVisibility(View.VISIBLE);
+    }
+    else
+    {
+      favHeader.setVisibility(View.GONE);
+    }
 
     findViewById(R.id.loading_message).setVisibility(View.GONE);
     findViewById(R.id.loading_spinner).setVisibility(View.GONE);
 
     findViewById(R.id.search_view).setVisibility(View.VISIBLE);
 
-    TextView view = (TextView) this.findViewById(R.id.search_bar);
+    AutoCompleteTextView view = (AutoCompleteTextView) findViewById(R.id.search_bar_auto);
+    view.setAdapter(adapter);
+
     view.requestFocus();
     InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
     imm.showSoftInput( view, InputMethodManager.SHOW_IMPLICIT);
+
+    view.setOnItemClickListener(
+      new AdapterView.OnItemClickListener()
+      {
+        @Override
+        public void onItemClick(AdapterView<?> adapterView, View view, int position, long id)
+        {
+          AutoCompleteTextView vw = (AutoCompleteTextView) findViewById(R.id.search_bar_auto);
+          vw.setText("");
+
+          SearchElement element = (SearchElement) adapterView.getItemAtPosition(position);
+
+          Intent tableIntent = new Intent(MainActivity.this, TableActivity.class);
+          tableIntent.putExtra("data", element);
+          startActivity(tableIntent);
+        }
+      }
+    );
+
+    refreshed = 1;
   }
 
   private boolean isOnline() {

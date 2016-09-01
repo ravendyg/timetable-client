@@ -42,6 +42,7 @@ public class EventsAdapter extends BaseAdapter
   public void clear ()
   {
     items.clear();
+    notifyDataSetChanged();
   }
 
   public void addAll (ArrayList<SearchElement> list)
