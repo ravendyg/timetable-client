@@ -8,4 +8,5 @@ Link to current apk: https://www.dropbox.com/s/kxuhy8vbxtlnf5j/app-release.apk?d
 &nbsp;
 &nbsp;
 ### Builds
+02.09.2016 - https://www.dropbox.com/s/qcs4efj54hwqdo9/app-release-16.09.02.apk?dl=0
 30.08.2016 - https://www.dropbox.com/s/k8fb6ojafhq8l26/app-release-16.08.30.apk?dl=0
