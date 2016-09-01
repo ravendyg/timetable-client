@@ -71,6 +71,13 @@ public class MainActivity extends AppCompatActivity
 
     long now = (new Date()).getTime();
 
+    favoritesList = (ListView) this.findViewById(R.id.list_view);
+
+    favoritesAdapter = new SearchAdapter(this, favorites);
+    favoritesList.setAdapter(favoritesAdapter);
+
+    adapter = new SearchAdapter(this, storage);
+
     if ( isOnline() )
     {
       long timestamp = getTimestamp();
@@ -81,12 +88,7 @@ public class MainActivity extends AppCompatActivity
       refreshList();
     }
 
-    favoritesList = (ListView) this.findViewById(R.id.list_view);
 
-    favoritesAdapter = new SearchAdapter(this, favorites);
-    favoritesList.setAdapter(favoritesAdapter);
-
-    adapter = new SearchAdapter(this, storage);
 
     favoritesList.setOnItemClickListener(
       new AdapterView.OnItemClickListener()
