@@ -62,6 +62,11 @@ public class MainActivity extends AppCompatActivity
 
   private int refreshed = 0;
 
+  private int minFav = 0, maxFav = 0;
+
+  private DbHelper mDbHelper;
+  private SQLiteDatabase db;
+
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -70,6 +75,9 @@ public class MainActivity extends AppCompatActivity
     setContentView(R.layout.activity_main);
 
     long now = (new Date()).getTime();
+
+    mDbHelper = new DbHelper(this);
+    db = mDbHelper.getWritableDatabase();
 
     favoritesList = (ListView) this.findViewById(R.id.list_view);
 
@@ -87,8 +95,6 @@ public class MainActivity extends AppCompatActivity
     {
       refreshList();
     }
-
-
 
     favoritesList.setOnItemClickListener(
       new AdapterView.OnItemClickListener()
@@ -114,6 +120,13 @@ public class MainActivity extends AppCompatActivity
     {
       refreshList();
     }
+  }
+
+  @Override
+  public void onDestroy ()
+  {
+    super.onDestroy();
+    db.close();
   }
 
   private class SyncData extends AsyncTask<URL, Void, String>
@@ -156,9 +169,6 @@ public class MainActivity extends AppCompatActivity
 
   private void refreshList ()
   {
-    DbHelper mDbHelper = new DbHelper(this);
-    SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
     storage.clear();
     favorites.clear();
 
@@ -172,9 +182,17 @@ public class MainActivity extends AppCompatActivity
       SearchElement element = new SearchElement(cursor.getString(0), "group", 0, cursor.getInt(1));
       storage.add(element);
 
-      if (cursor.getInt(1) == 1)
+      if ( cursor.getInt(1) > 0 )
       {
         favorites.add(element);
+        if ( minFav ==0 || element.fav < minFav )
+        {
+          minFav = element.fav;
+        }
+        if ( element.fav > maxFav)
+        {
+          maxFav = element.fav;
+        }
       }
     }
 
@@ -190,9 +208,17 @@ public class MainActivity extends AppCompatActivity
       SearchElement element = new SearchElement(cursor.getString(0), "person", cursor.getInt(1), cursor.getInt(2));
       storage.add(element);
 
-      if (cursor.getInt(2) == 1)
+      if ( cursor.getInt(2) > 0 )
       {
         favorites.add(element);
+        if ( minFav ==0 || element.fav < minFav )
+        {
+          minFav = element.fav;
+        }
+        if ( element.fav > maxFav)
+        {
+          maxFav = element.fav;
+        }
       }
     }
 
@@ -201,15 +227,6 @@ public class MainActivity extends AppCompatActivity
     adapter.notifyDataSetChanged();
     favoritesAdapter.notifyDataSetChanged();
 
-    TextView favHeader = (TextView) findViewById(R.id.fav_header);
-    if (favoritesList.getCount() > 0)
-    {
-      favHeader.setVisibility(View.VISIBLE);
-    }
-    else
-    {
-      favHeader.setVisibility(View.GONE);
-    }
 
     findViewById(R.id.loading_message).setVisibility(View.GONE);
     findViewById(R.id.loading_spinner).setVisibility(View.GONE);
@@ -234,6 +251,57 @@ public class MainActivity extends AppCompatActivity
 
           SearchElement element = (SearchElement) adapterView.getItemAtPosition(position);
 
+          if ( element.fav == 0 )
+          {
+            ContentValues cv = new ContentValues();
+
+            if (element.type.equals("group"))
+            {
+              cv.put(groupEntry.FAVORITE, ++maxFav);
+
+              db.update(
+                  groupEntry.TABLE_NAME,
+                  cv,
+                  groupEntry.NAME + "=?",
+                  new String[] {element.text}
+              );
+            }
+            else
+            {
+              cv.put(personEntry.FAVORITE, ++maxFav);
+
+              db.update(
+                      personEntry.TABLE_NAME,
+                      cv,
+                      personEntry.PERSON_ID + "=?",
+                      new String[] {""+element.id}
+              );
+            }
+
+            if ( maxFav - minFav > 2 )
+            {
+              cv.put(groupEntry.FAVORITE, 0);
+
+              db.update(
+                  groupEntry.TABLE_NAME,
+                  cv,
+                  groupEntry.FAVORITE + "=?",
+                  new String[] {""+minFav}
+              );
+
+              cv.put(personEntry.FAVORITE, 0);
+
+              db.update(
+                      personEntry.TABLE_NAME,
+                      cv,
+                      personEntry.FAVORITE + "=?",
+                      new String[] {""+minFav}
+              );
+
+              minFav++;
+            }
+          }
+
           Intent tableIntent = new Intent(MainActivity.this, TableActivity.class);
           tableIntent.putExtra("data", element);
           startActivity(tableIntent);
@@ -257,10 +325,6 @@ public class MainActivity extends AppCompatActivity
 
   private long getTimestamp ()
   {
-    // connect to db in write mode
-    DbHelper mDbHelper = new DbHelper(this);
-    SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
     String queryString = "SELECT " + DbHelper.timeEntry.TIMESTAMP + " FROM " + DbHelper.timeEntry.TABLE_NAME +
       " WHERE " + DbHelper.timeEntry.COUNTER + " = " + 1 + ";";
 
@@ -283,17 +347,11 @@ public class MainActivity extends AppCompatActivity
 
   private void setTimestamp (long now)
   {
-    // connect to db in write mode
-    DbHelper mDbHelper = new DbHelper(this);
-    SQLiteDatabase db = mDbHelper.getWritableDatabase();
-
     ContentValues values = new ContentValues();
     values.put(DbHelper.timeEntry.COUNTER, 1);
     values.put(DbHelper.timeEntry.TIMESTAMP, now);
 
     db.insert(DbHelper.timeEntry.TABLE_NAME, null, values);
-
-    db.close();
   }
 
   private void storeChanges (EventElement [] data, String type)
