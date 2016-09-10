@@ -4,5 +4,8 @@
     <string name="pref_refresh" translatable="false">pref_refresh</string>
     <string name="search_hint">Группа или фамилия</string>
     <string name="loading_message">Обновляю расписание</string>
+    <string name="no_internet_message">Для первого запуска необходимо подключение к сети</string>
     <string name="favorites">Избранное</string>
+    <string name="odd">Нечет.</string>
+    <string name="even">Чет.</string>
 </resources>

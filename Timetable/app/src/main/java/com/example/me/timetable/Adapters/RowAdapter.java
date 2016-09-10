@@ -19,11 +19,14 @@ import java.util.regex.Pattern;
  */
 public class RowAdapter extends BaseAdapter
 {
-  private static final int TYPE_MAX_COUNT = 3;
+  private static final int TYPE_MAX_COUNT = 6;
 
   private static final int TYPE_ITEM = 0;
-  private static final int TYPE_DOUBLE_ITEM = 2;
-  private static final int TYPE_SEPARATOR = 1;
+  private static final int TYPE_ITEM_LEFT = 1;
+  private static final int TYPE_ITEM_RIGHT = 2;
+  private static final int TYPE_ITEM_DOUBLE = 3;
+  private static final int TYPE_EMPTY = 4;
+  private static final int TYPE_SEPARATOR = 5;
 
   private Context ctx;
   private LayoutInflater inflater;
@@ -86,15 +89,29 @@ public class RowAdapter extends BaseAdapter
       {
         case TYPE_ITEM:
           view = inflater.inflate(R.layout.row_item, parent, false);
+          ( (TextView) view.findViewById(R.id.item_day)).setText("");
         break;
 
-        case TYPE_DOUBLE_ITEM:
+        case TYPE_ITEM_LEFT:
+          view = inflater.inflate(R.layout.row_item, parent, false);
+          ( (TextView) view.findViewById(R.id.item_day)).setText(R.string.odd);
+        break;
+
+        case TYPE_ITEM_RIGHT:
+          view = inflater.inflate(R.layout.row_item, parent, false);
+          ( (TextView) view.findViewById(R.id.item_day)).setText(R.string.even);
+        break;
+
+        case TYPE_ITEM_DOUBLE:
           view = inflater.inflate(R.layout.row_double_item, parent, false);
-          break;
+        break;
 
         case TYPE_SEPARATOR:
           view = inflater.inflate(R.layout.row_header, parent, false);
         break;
+
+        default:
+          view = inflater.inflate(R.layout.empty_row_item, parent, false);
       }
     }
 
@@ -102,28 +119,71 @@ public class RowAdapter extends BaseAdapter
     switch (type)
     {
       case TYPE_ITEM:
+      case TYPE_ITEM_LEFT:
         person1 = reduceGroups(element.person[0]);
         ((TextView) view.findViewById(R.id.row_time)).setText(times[element.time]);
-        ((TextView) view.findViewById(R.id.row_title)).setText(element.title[0]);
-        ((TextView) view.findViewById(R.id.row_place)).setText(element.place[0]);
-        ((TextView) view.findViewById(R.id.row_person)).setText(person1);
+        ((TextView) view.findViewById(R.id.item_title)).setText(element.title[0]);
+        ((TextView) view.findViewById(R.id.item_content_place)).setText(element.place[0]);
+        ((TextView) view.findViewById(R.id.item_content_person)).setText(person1);
       break;
 
-      case TYPE_DOUBLE_ITEM:
+      case TYPE_ITEM_RIGHT:
+        person2 = reduceGroups(element.person[1]);
+        ((TextView) view.findViewById(R.id.row_time)).setText(times[element.time]);
+        ((TextView) view.findViewById(R.id.item_title)).setText(element.title[1]);
+        ((TextView) view.findViewById(R.id.item_content_place)).setText(element.place[1]);
+        ((TextView) view.findViewById(R.id.item_content_person)).setText(person2);
+      break;
+
+      case TYPE_ITEM_DOUBLE:
         person1 = reduceGroups(element.person[0]);
         person2 = reduceGroups(element.person[1]);
         ((TextView) view.findViewById(R.id.row_time)).setText(times[element.time]);
-        ((TextView) view.findViewById(R.id.row_title1)).setText(element.title[0]);
-        ((TextView) view.findViewById(R.id.row_place1)).setText(element.place[0]);
-        ((TextView) view.findViewById(R.id.row_person1)).setText(person1);
-        ((TextView) view.findViewById(R.id.row_title2)).setText(element.title[1]);
-        ((TextView) view.findViewById(R.id.row_place2)).setText(element.place[1]);
-        ((TextView) view.findViewById(R.id.row_person2)).setText(person2);
+        ((TextView) view.findViewById(R.id.odd_item_title)).setText(element.title[0]);
+        ((TextView) view.findViewById(R.id.odd_item_content_place)).setText(element.place[0]);
+        ((TextView) view.findViewById(R.id.odd_item_content_person)).setText(person1);
+        ((TextView) view.findViewById(R.id.even_item_title)).setText(element.title[1]);
+        ((TextView) view.findViewById(R.id.even_item_content_place)).setText(element.place[1]);
+        ((TextView) view.findViewById(R.id.even_item_content_person)).setText(person2);
       break;
 
       case TYPE_SEPARATOR:
         ((TextView) view.findViewById(R.id.row_header)).setText(element.title[0]);
       break;
+
+      default:
+        ((TextView) view.findViewById(R.id.row_time)).setText(times[element.time]);
+//
+
+//      case TYPE_ITEM:
+//        switch (element.type)
+//        {
+//
+//
+//          case 0:
+//            view.findViewById(R.id.odd_item_odd).setVisibility(View.GONE);
+//            view.findViewById(R.id.even_item).setVisibility(View.GONE);
+//
+//          break;
+//
+//          case 1:
+//            view.findViewById(R.id.odd_item).setVisibility(View.GONE);
+//            person2 = reduceGroups(element.person[1]);
+//            ((TextView) view.findViewById(R.id.row_time)).setText(times[element.time]);
+//            ((TextView) view.findViewById(R.id.even_item_title)).setText(element.title[1]);
+//            ((TextView) view.findViewById(R.id.even_item_content_place)).setText(element.place[1]);
+//            ((TextView) view.findViewById(R.id.even_item_content_person)).setText(person2);
+//          break;
+//
+//          case 2:
+
+//          break;
+//        }
+//      break;
+//
+//      case TYPE_SEPARATOR:
+//        ((TextView) view.findViewById(R.id.row_header)).setText(element.title[0]);
+//      break;
     }
 
     return view;
@@ -140,20 +200,33 @@ public class RowAdapter extends BaseAdapter
   {
     RowElement element = getElement(position);
 
-    // rows with data
+    int out;
+
     switch (element.type)
     {
       case 0:
-        return TYPE_ITEM;
+        out = TYPE_ITEM;
+      break;
+
       case 1:
+        out = TYPE_ITEM_LEFT;
+      break;
+
       case 2:
+        out = TYPE_ITEM_RIGHT;
+      break;
+
       case 3:
-        return TYPE_DOUBLE_ITEM;
+        out = TYPE_ITEM_DOUBLE;
+      break;
+
+      default:
+        out = TYPE_EMPTY;
     }
 
     // rows without data - either headers or just empty
     int type = position % (1 + PeriodsService.getTimes().length);
-    return type == 0 ? TYPE_SEPARATOR : TYPE_ITEM;
+    return type == 0 ? TYPE_SEPARATOR : out;
   }
 
   private String reduceGroups(String input)

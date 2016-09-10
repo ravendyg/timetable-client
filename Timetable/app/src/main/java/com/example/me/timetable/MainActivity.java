@@ -1,13 +1,16 @@
 package com.example.me.timetable;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
+import android.net.Network;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.CountDownTimer;
@@ -35,6 +38,8 @@ import com.example.me.timetable.data.DbHelper.personEntry;
 import com.example.me.timetable.data.DbHelper.groupEntry;
 import com.example.me.timetable.data.PeriodsService;
 
+import com.example.me.timetable.NetworkStateReceiver.NetworkStateReceiverListener;
+
 import org.json.JSONException;
 import org.w3c.dom.Text;
 
@@ -43,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
@@ -86,14 +92,23 @@ public class MainActivity extends AppCompatActivity
 
     adapter = new SearchAdapter(this, storage);
 
+    long timestamp = getTimestamp();
+
     if ( isOnline() )
     {
-      long timestamp = getTimestamp();
       new SyncData(now, timestamp).execute();
+    }
+    else if ( timestamp > 0 )
+    {
+      refreshList();
     }
     else
     {
-      refreshList();
+//      waitForConnection();
+      ( (TextView) findViewById(R.id.loading_message) ).setText( getString( R.string.no_internet_message) );
+      NetworkStateReceiver networkStateReceiver = new NetworkStateReceiver();
+      networkStateReceiver.addListener( new ConnectionListener() );
+      this.registerReceiver(networkStateReceiver, new IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION));
     }
 
     favoritesList.setOnItemClickListener(
@@ -108,7 +123,7 @@ public class MainActivity extends AppCompatActivity
           tableIntent.putExtra("data", element);
           startActivity(tableIntent);
         }
-    }
+      }
     );
   }
 
@@ -224,6 +239,8 @@ public class MainActivity extends AppCompatActivity
 
     cursor.close();
 
+    Collections.sort(favorites, new SearchElement.CustomComparator());
+
     adapter.notifyDataSetChanged();
     favoritesAdapter.notifyDataSetChanged();
 
@@ -278,7 +295,7 @@ public class MainActivity extends AppCompatActivity
               );
             }
 
-            if ( maxFav - minFav > 2 )
+            if ( maxFav - minFav >= 5 )
             {
               cv.put(groupEntry.FAVORITE, 0);
 
@@ -321,6 +338,22 @@ public class MainActivity extends AppCompatActivity
             ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET);
 
     return netInfo != null && netInfo.isConnectedOrConnecting() && permissionCheck == PackageManager.PERMISSION_GRANTED;
+  }
+
+  public class ConnectionListener implements NetworkStateReceiverListener {
+    /* ... */
+    private NetworkStateReceiver networkStateReceiver;
+
+    @Override
+    public void networkAvailable() {
+      long now = (new Date()).getTime();
+      ( (TextView) findViewById(R.id.loading_message) ).setText( getString( R.string.loading_message) );
+      new SyncData(now, 0).execute();
+    }
+
+    @Override
+    public void networkUnavailable() {
+    }
   }
 
   private long getTimestamp ()

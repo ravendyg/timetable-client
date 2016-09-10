@@ -44,7 +44,7 @@ public class RowElement
       {
         type = position;
       }
-      else
+      else if ( type != position )
       {
         type = 3;
       }
