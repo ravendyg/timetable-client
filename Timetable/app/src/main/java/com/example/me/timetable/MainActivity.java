@@ -17,6 +17,8 @@ import android.os.CountDownTimer;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -55,16 +57,20 @@ import java.util.logging.LogRecord;
 public class MainActivity extends AppCompatActivity
 {
   private final String tag = this.getClass().getSimpleName();
+//
+//  private SearchAdapter adapter;
 
-  private SearchAdapter adapter;
-
-  private SearchAdapter favoritesAdapter;
+  private SearchAdapter searchAdapter;
 
   private ArrayList<SearchElement> storage = new ArrayList<SearchElement>(Arrays.asList(new SearchElement[0]));
 
   private ArrayList<SearchElement> favorites = new ArrayList<SearchElement>(Arrays.asList(new SearchElement[0]));
 
-  ListView favoritesList;
+  private ArrayList<SearchElement> searchResult = new ArrayList<SearchElement>(Arrays.asList(new SearchElement[0]));
+
+  ListView searchList;
+
+  private EditText searchInput;
 
   private int refreshed = 0;
 
@@ -85,12 +91,97 @@ public class MainActivity extends AppCompatActivity
     mDbHelper = new DbHelper(this);
     db = mDbHelper.getWritableDatabase();
 
-    favoritesList = (ListView) this.findViewById(R.id.list_view);
 
-    favoritesAdapter = new SearchAdapter(this, favorites);
-    favoritesList.setAdapter(favoritesAdapter);
+    searchAdapter = new SearchAdapter(this, searchResult);
 
-    adapter = new SearchAdapter(this, storage);
+    searchList = (ListView) this.findViewById(R.id.list_view);
+    searchList.setAdapter(searchAdapter);
+//    searchAdapter = new SearchAdapter(this, favorites);
+    searchList.setOnItemClickListener(
+        new AdapterView.OnItemClickListener()
+        {
+          @Override
+          public void onItemClick (AdapterView<?> adapterView, View view, int position, long id)
+          {
+            SearchElement element = searchAdapter.getElement(position);
+
+            if ( element.fav == 0 )
+            {
+              ContentValues cv = new ContentValues();
+
+              if (element.type.equals("group"))
+              {
+                cv.put(groupEntry.FAVORITE, ++maxFav);
+
+                db.update(
+                        groupEntry.TABLE_NAME,
+                        cv,
+                        groupEntry.NAME + "=?",
+                        new String[] {element.text}
+                );
+              }
+              else
+              {
+                cv.put(personEntry.FAVORITE, ++maxFav);
+
+                db.update(
+                        personEntry.TABLE_NAME,
+                        cv,
+                        personEntry.PERSON_ID + "=?",
+                        new String[] {""+element.id}
+                );
+              }
+
+              if ( maxFav - minFav >= 5 )
+              {
+                cv.put(groupEntry.FAVORITE, 0);
+
+                db.update(
+                        groupEntry.TABLE_NAME,
+                        cv,
+                        groupEntry.FAVORITE + "=?",
+                        new String[] {""+minFav}
+                );
+
+                cv.put(personEntry.FAVORITE, 0);
+
+                db.update(
+                        personEntry.TABLE_NAME,
+                        cv,
+                        personEntry.FAVORITE + "=?",
+                        new String[] {""+minFav}
+                );
+
+                minFav++;
+              }
+            }
+
+            Intent tableIntent = new Intent(MainActivity.this, TableActivity.class);
+            tableIntent.putExtra("data", element);
+            startActivity(tableIntent);
+          }
+        }
+    );
+
+    searchInput = (EditText) findViewById(R.id.search_bar_auto);
+
+    searchInput.addTextChangedListener(
+      new TextWatcher()
+      {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+
+        @Override
+        public void afterTextChanged(Editable editable)
+        {
+          filterSearchResults( editable.toString() );
+        }
+      }
+    );
+
 
     long timestamp = getTimestamp();
 
@@ -111,20 +202,6 @@ public class MainActivity extends AppCompatActivity
       this.registerReceiver(networkStateReceiver, new IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION));
     }
 
-    favoritesList.setOnItemClickListener(
-      new AdapterView.OnItemClickListener()
-      {
-        @Override
-        public void onItemClick (AdapterView<?> adapterView, View view, int position, long id)
-        {
-          SearchElement element = favoritesAdapter.getElement(position);
-
-          Intent tableIntent = new Intent(MainActivity.this, TableActivity.class);
-          tableIntent.putExtra("data", element);
-          startActivity(tableIntent);
-        }
-      }
-    );
   }
 
   @Override
@@ -169,7 +246,8 @@ public class MainActivity extends AppCompatActivity
         output = ResponseParser.getElements(syncData);
         storeChanges(output, type);
         setTimestamp(now);
-      } catch (JSONException e)
+      }
+      catch (JSONException e)
       {
         Log.e(tag, "response is empty", e);
       }
@@ -241,92 +319,42 @@ public class MainActivity extends AppCompatActivity
 
     Collections.sort(favorites, new SearchElement.CustomComparator());
 
-    adapter.notifyDataSetChanged();
-    favoritesAdapter.notifyDataSetChanged();
-
-
     findViewById(R.id.loading_message).setVisibility(View.GONE);
     findViewById(R.id.loading_spinner).setVisibility(View.GONE);
 
     findViewById(R.id.search_view).setVisibility(View.VISIBLE);
 
-    AutoCompleteTextView view = (AutoCompleteTextView) findViewById(R.id.search_bar_auto);
-    view.setAdapter(adapter);
+    TextView view = (TextView) findViewById(R.id.search_bar_auto);
+
+    filterSearchResults( view.getText().toString() );  // serch results on start or reload
 
     view.requestFocus();
     InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
     imm.showSoftInput( view, InputMethodManager.SHOW_IMPLICIT);
 
-    view.setOnItemClickListener(
-      new AdapterView.OnItemClickListener()
+    refreshed = 1;
+  }
+
+  private void filterSearchResults ( String input )
+  {
+    searchResult.clear();
+
+    if ( input.length() == 0 )
+    { // show last searches
+      searchResult.addAll( favorites );
+    }
+    else
+    {
+      for (SearchElement el: storage)
       {
-        @Override
-        public void onItemClick(AdapterView<?> adapterView, View view, int position, long id)
+        if ( el.text.toLowerCase().matches( "(.*)" + input.toLowerCase() + "(.*)" ) )
         {
-          AutoCompleteTextView vw = (AutoCompleteTextView) findViewById(R.id.search_bar_auto);
-          vw.setText("");
-
-          SearchElement element = (SearchElement) adapterView.getItemAtPosition(position);
-
-          if ( element.fav == 0 )
-          {
-            ContentValues cv = new ContentValues();
-
-            if (element.type.equals("group"))
-            {
-              cv.put(groupEntry.FAVORITE, ++maxFav);
-
-              db.update(
-                  groupEntry.TABLE_NAME,
-                  cv,
-                  groupEntry.NAME + "=?",
-                  new String[] {element.text}
-              );
-            }
-            else
-            {
-              cv.put(personEntry.FAVORITE, ++maxFav);
-
-              db.update(
-                      personEntry.TABLE_NAME,
-                      cv,
-                      personEntry.PERSON_ID + "=?",
-                      new String[] {""+element.id}
-              );
-            }
-
-            if ( maxFav - minFav >= 5 )
-            {
-              cv.put(groupEntry.FAVORITE, 0);
-
-              db.update(
-                  groupEntry.TABLE_NAME,
-                  cv,
-                  groupEntry.FAVORITE + "=?",
-                  new String[] {""+minFav}
-              );
-
-              cv.put(personEntry.FAVORITE, 0);
-
-              db.update(
-                      personEntry.TABLE_NAME,
-                      cv,
-                      personEntry.FAVORITE + "=?",
-                      new String[] {""+minFav}
-              );
-
-              minFav++;
-            }
-          }
-
-          Intent tableIntent = new Intent(MainActivity.this, TableActivity.class);
-          tableIntent.putExtra("data", element);
-          startActivity(tableIntent);
+          searchResult.add(el);
         }
       }
-    );
+    }
 
-    refreshed = 1;
+    searchAdapter.notifyDataSetChanged();
   }
 
   private boolean isOnline() {

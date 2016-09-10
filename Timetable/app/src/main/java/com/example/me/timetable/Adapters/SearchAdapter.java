@@ -19,7 +19,7 @@ import java.util.concurrent.RecursiveTask;
 /**
  * Created by me on 24/08/16.
  */
-public class SearchAdapter extends BaseAdapter implements Filterable
+public class SearchAdapter extends BaseAdapter// implements Filterable
 {
   private Context ctx;
   private LayoutInflater inflater;
@@ -93,7 +93,7 @@ public class SearchAdapter extends BaseAdapter implements Filterable
 
     return view;
   }
-
+/*
   @Override
   public Filter getFilter ()
   {
@@ -136,6 +136,7 @@ public class SearchAdapter extends BaseAdapter implements Filterable
       }
     };
   }
+  */
 }
 
 
