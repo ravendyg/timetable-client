@@ -27,6 +27,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -71,6 +72,8 @@ public class MainActivity extends AppCompatActivity
   ListView searchList;
 
   private EditText searchInput;
+
+  private Button clearSearchInput;
 
   private int refreshed = 0;
 
@@ -181,6 +184,8 @@ public class MainActivity extends AppCompatActivity
         }
       }
     );
+
+    clearSearchInput = (Button) findViewById(R.id.clear_search);
 
 
     long timestamp = getTimestamp();
@@ -352,9 +357,17 @@ public class MainActivity extends AppCompatActivity
           searchResult.add(el);
         }
       }
+
+      clearSearchInput.setVisibility(View.VISIBLE);
     }
 
     searchAdapter.notifyDataSetChanged();
+  }
+
+  public void clearSearchInput (View btn)
+  {
+    searchInput.setText("");
+    btn.setVisibility(View.GONE);
   }
 
   private boolean isOnline() {
