@@ -3,7 +3,12 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
-    <color name="tableHeader">#CFD8DC</color>
+    <color name="tableHeader">#EEEEEE</color>
+    <color name="colorOddText">#303F9F</color>
+    <!--<color name="colorPrimary">#9E9E9E</color>-->
+    <!--<color name="colorPrimaryDark">#424242</color>-->
+    <!--<color name="colorAccent">#FF4081</color>-->
+    <!--<color name="tableHeader">#EEEEEE</color>-->
     <!--&lt;!&ndash; Primary color of the app (shown in the app bar) &ndash;&gt;-->
     <!--<color name="colorPrimary">#4A312A</color>-->
 

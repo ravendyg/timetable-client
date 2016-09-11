@@ -12,6 +12,7 @@ import com.example.me.timetable.R;
 import com.example.me.timetable.data.PeriodsService;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -94,12 +95,12 @@ public class RowAdapter extends BaseAdapter
 
         case TYPE_ITEM_LEFT:
           view = inflater.inflate(R.layout.row_item, parent, false);
-          ( (TextView) view.findViewById(R.id.item_day)).setText(R.string.odd);
+//          ( (TextView) view.findViewById(R.id.item_day)).setText(R.string.odd);
         break;
 
         case TYPE_ITEM_RIGHT:
           view = inflater.inflate(R.layout.row_item, parent, false);
-          ( (TextView) view.findViewById(R.id.item_day)).setText(R.string.even);
+//          ( (TextView) view.findViewById(R.id.item_day)).setText(R.string.even);
         break;
 
         case TYPE_ITEM_DOUBLE:
@@ -116,29 +117,47 @@ public class RowAdapter extends BaseAdapter
     }
 
     String person1, person2;
+    String timeLabel = "";
+    if ( element.time != -1 )
+    {
+      timeLabel = times[element.time];
+      if ( timeLabel.length() == 4 )
+      {
+        timeLabel = "0" + timeLabel;
+      }
+    }
+
+
     switch (type)
     {
       case TYPE_ITEM:
       case TYPE_ITEM_LEFT:
         person1 = reduceGroups(element.person[0]);
-        ((TextView) view.findViewById(R.id.row_time)).setText(times[element.time]);
+        ((TextView) view.findViewById(R.id.row_time)).setText(timeLabel);
         ((TextView) view.findViewById(R.id.item_title)).setText(element.title[0]);
         ((TextView) view.findViewById(R.id.item_content_place)).setText(element.place[0]);
         ((TextView) view.findViewById(R.id.item_content_person)).setText(person1);
+
+        if ( type == TYPE_ITEM_LEFT )
+        {
+          ( (TextView) view.findViewById(R.id.item_day)).setText(R.string.odd);
+        }
       break;
 
       case TYPE_ITEM_RIGHT:
         person2 = reduceGroups(element.person[1]);
-        ((TextView) view.findViewById(R.id.row_time)).setText(times[element.time]);
+        ((TextView) view.findViewById(R.id.row_time)).setText(timeLabel);
         ((TextView) view.findViewById(R.id.item_title)).setText(element.title[1]);
         ((TextView) view.findViewById(R.id.item_content_place)).setText(element.place[1]);
         ((TextView) view.findViewById(R.id.item_content_person)).setText(person2);
+
+        ( (TextView) view.findViewById(R.id.item_day)).setText(R.string.even);
       break;
 
       case TYPE_ITEM_DOUBLE:
         person1 = reduceGroups(element.person[0]);
         person2 = reduceGroups(element.person[1]);
-        ((TextView) view.findViewById(R.id.row_time)).setText(times[element.time]);
+        ((TextView) view.findViewById(R.id.row_time)).setText(timeLabel);
         ((TextView) view.findViewById(R.id.odd_item_title)).setText(element.title[0]);
         ((TextView) view.findViewById(R.id.odd_item_content_place)).setText(element.place[0]);
         ((TextView) view.findViewById(R.id.odd_item_content_person)).setText(person1);
@@ -152,38 +171,8 @@ public class RowAdapter extends BaseAdapter
       break;
 
       default:
-        ((TextView) view.findViewById(R.id.row_time)).setText(times[element.time]);
-//
+        ((TextView) view.findViewById(R.id.row_time)).setText(timeLabel);
 
-//      case TYPE_ITEM:
-//        switch (element.type)
-//        {
-//
-//
-//          case 0:
-//            view.findViewById(R.id.odd_item_odd).setVisibility(View.GONE);
-//            view.findViewById(R.id.even_item).setVisibility(View.GONE);
-//
-//          break;
-//
-//          case 1:
-//            view.findViewById(R.id.odd_item).setVisibility(View.GONE);
-//            person2 = reduceGroups(element.person[1]);
-//            ((TextView) view.findViewById(R.id.row_time)).setText(times[element.time]);
-//            ((TextView) view.findViewById(R.id.even_item_title)).setText(element.title[1]);
-//            ((TextView) view.findViewById(R.id.even_item_content_place)).setText(element.place[1]);
-//            ((TextView) view.findViewById(R.id.even_item_content_person)).setText(person2);
-//          break;
-//
-//          case 2:
-
-//          break;
-//        }
-//      break;
-//
-//      case TYPE_SEPARATOR:
-//        ((TextView) view.findViewById(R.id.row_header)).setText(element.title[0]);
-//      break;
     }
 
     return view;
@@ -231,33 +220,47 @@ public class RowAdapter extends BaseAdapter
 
   private String reduceGroups(String input)
   {
+    if ( !input.matches(".*[0-9]+.*") )
+    {
+      return input;
+    }
     String [] options = input.split(",");
+    ArrayList<String> result = new ArrayList<String>();
+
     for (int i = 0; i < options.length; i++)
     {
       options[i] = options[i].replaceAll("(^\\s|\\s$)", "");
+      options[i] = options[i].replaceAll("\\..*$", "");
     }
-    for (int i = 0; i < options.length - 1; i++)
+    for (int i = 0; i < options.length; i++)
     {
-      for (int j = i + 1; j < options.length; j++)
+      if ( result.size() == 0 )
       {
-        if (options[i].length() == 0)
+        result.add( options[i] );
+      }
+      else
+      {
+        boolean notFound = true;
+        for (int j = 0; j < result.size(); j++)
         {
-          break;
+          if ( result.get(j).equals(options[i]) )
+          {
+            notFound = false;
+            break;
+          }
         }
-        if ( options[i].replaceAll("\\.[0-9]{1,}", "").equals( options[j].replaceAll("\\.[0-9]{1,}", "") ) )
+        if ( notFound )
         {
-          options[i] = options[i].replaceAll("\\.[0-9]{1,}", "");
-          options[j] = "";
-          break;
+          result.add( options[i] );
         }
       }
     }
     String output = "";
-    for (int j = options.length - 1; j >= 0; j--)
+    for (int j = result.size() - 1; j >= 0 ; j--)
     {
-      if ( options[j].length() > 0 )
+      if ( result.get(j).length() > 0 )
       {
-        output += options[j] + ", ";
+        output += result.get(j) + ", ";
       }
     }
     output = output.replaceAll("\\,\\s$", "");

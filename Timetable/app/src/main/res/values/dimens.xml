@@ -5,4 +5,5 @@
     <dimen name="regular_font_size">16sp</dimen>
     <dimen name="h3_font_size">19sp</dimen>
     <dimen name="header_font_size">19sp</dimen>
+    <dimen name="time_col_padding">16dp</dimen>
 </resources>

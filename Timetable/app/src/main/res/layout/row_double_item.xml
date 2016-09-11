@@ -6,8 +6,10 @@
     >
     <TextView
         android:id="@+id/row_time"
-        android:layout_width="100dp"
         android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:paddingLeft="@dimen/time_col_padding"
+        android:paddingRight="@dimen/time_col_padding"
         android:paddingBottom="@dimen/activity_vertical_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
         android:gravity="top|center"
@@ -47,9 +49,11 @@
                     android:id="@+id/odd_item_odd"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:paddingRight="@dimen/time_col_padding"
                     android:textStyle="bold"
                     android:gravity="left"
                     android:text="@string/odd"
+                    android:textColor="@color/colorOddText"
                     />
             </LinearLayout>
 
@@ -93,9 +97,11 @@
                     android:id="@+id/even_item_odd"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:paddingRight="@dimen/time_col_padding"
                     android:textStyle="bold"
                     android:gravity="left"
                     android:text="@string/even"
+                    android:textColor="@color/colorOddText"
                     />
             </LinearLayout>
 
