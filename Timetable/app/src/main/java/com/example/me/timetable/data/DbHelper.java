@@ -66,7 +66,7 @@ public class DbHelper extends SQLiteOpenHelper
     public static final String FAVORITE = "favorite";
   }
 
-  private static final int DB_VERSION = 76;
+  private static final int DB_VERSION = 79;
 
   static final String DB_NAME = "timetable.db";
 
@@ -95,7 +95,7 @@ public class DbHelper extends SQLiteOpenHelper
 
         "UNIQUE (" +
           dataEntry.DAY + ", "  + dataEntry.TIME + ", " +
-          dataEntry.PLACE + ", " + dataEntry.GROUP +
+          dataEntry.GROUP + ", " + dataEntry.POSITION +
         ") ON CONFLICT REPLACE);";
 
     final String CREATE_STAMP_TABLE =
@@ -114,7 +114,7 @@ public class DbHelper extends SQLiteOpenHelper
 
     final String CREATE_PEOPLE_TABLE =
       "CREATE TABLE " + personEntry.TABLE_NAME + " (" +
-        personEntry._ID         + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+//        personEntry._ID         + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
         personEntry.PERSON_ID   + " INTEGER NOT NULL, " +
         personEntry.FULL_NAME   + " TEXT NOT NULL, " +
         personEntry.FAVORITE + " INTEGER NOT NULL DEFAULT 0, " +

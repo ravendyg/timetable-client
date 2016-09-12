@@ -511,19 +511,54 @@ public class MainActivity extends AppCompatActivity
 
   private void insertNewPerson (SQLiteDatabase db, EventElement data)
   {
-    ContentValues person = new ContentValues();
-    person.put(DbHelper.personEntry.PERSON_ID, data.personId);
-    person.put(DbHelper.personEntry.FULL_NAME, data.fullName);
+    String queryString =
+      "SELECT * FROM " + personEntry.TABLE_NAME + " WHERE " + personEntry.PERSON_ID + "=" + data.personId + ";";
+    Cursor cursor = db.rawQuery(queryString, null);
 
-    db.insertWithOnConflict(DbHelper.personEntry.TABLE_NAME, null, person,  SQLiteDatabase.CONFLICT_REPLACE);
+    int fav = 0;
+    boolean replace = true;
+
+    if ( cursor.getCount() > 0 )
+    {
+      cursor.moveToFirst();
+      int id = cursor.getInt(0);
+      String name = cursor.getString(1);
+      fav = cursor.getInt(2);
+
+      if ( !name.equals(data.fullName) )
+      {
+        replace = false;
+      }
+    }
+
+    cursor.close();
+
+    if ( replace )
+    {
+      ContentValues person = new ContentValues();
+      person.put(personEntry.PERSON_ID, data.personId);
+      person.put(personEntry.FULL_NAME, data.fullName);
+      person.put(personEntry.FAVORITE, fav);
+
+      db.insertWithOnConflict(DbHelper.personEntry.TABLE_NAME, null, person, SQLiteDatabase.CONFLICT_REPLACE);
+    }
   }
 
   private void insertNewGroup (SQLiteDatabase db, EventElement data)
   {
-    ContentValues group = new ContentValues();
-    group.put(groupEntry.NAME, data.group);
+    String queryString =
+            "SELECT * FROM " + groupEntry.TABLE_NAME + " WHERE " + groupEntry.NAME + "=" + data.group + ";";
+    Cursor cursor = db.rawQuery(queryString, null);
 
-    db.insertWithOnConflict(groupEntry.TABLE_NAME, null, group, SQLiteDatabase.CONFLICT_REPLACE);
+    if ( cursor.getCount() == 0 )
+    {
+      ContentValues group = new ContentValues();
+      group.put(groupEntry.NAME, data.group);
+
+      db.insertWithOnConflict(groupEntry.TABLE_NAME, null, group, SQLiteDatabase.CONFLICT_REPLACE);
+    }
+
+    cursor.close();
   }
 }
 
