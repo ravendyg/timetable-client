@@ -63,6 +63,7 @@
                 android:background="@drawable/ic_highlight_off_black_48dp"
                 android:onClick="clearSearchInput"
                 android:visibility="gone"
+                android:alpha="0.6"
             />
         </FrameLayout>
 
