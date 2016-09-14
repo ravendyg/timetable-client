@@ -51,7 +51,7 @@ public class ResponseParser
     catch (JSONException e)
     {
       Log.e("parser", "read data", e);
-      result = new EventElement[0];
+      result = null;
     }
 
     return result;

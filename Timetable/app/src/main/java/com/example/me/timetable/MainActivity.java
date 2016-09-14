@@ -249,8 +249,11 @@ public class MainActivity extends AppCompatActivity
       {
         String type = ResponseParser.getType(syncData);
         output = ResponseParser.getElements(syncData);
-        storeChanges(output, type);
-        setTimestamp(now);
+        if ( output != null )
+        {
+          storeChanges(output, type);
+          setTimestamp(now);
+        }
       }
       catch (JSONException e)
       {
@@ -445,12 +448,9 @@ public class MainActivity extends AppCompatActivity
     {
       if ( type.equals("new") )
       { // remove all previous data
-        String query = "DELETE FROM " + dataEntry.TABLE_NAME + ";";
-        db.rawQuery(query, null);
-        query = "DELETE FROM " + personEntry.TABLE_NAME + ";";
-        db.rawQuery(query, null);
-        query = "DELETE FROM " + groupEntry.TABLE_NAME + ";";
-        db.rawQuery(query, null);
+        db.delete(dataEntry.TABLE_NAME, null, null);
+        db.delete(personEntry.TABLE_NAME, null, null);
+        db.delete(groupEntry.TABLE_NAME, null, null);
       }
 
       for (int k = 0; k < data.length; k++)
@@ -465,14 +465,11 @@ public class MainActivity extends AppCompatActivity
           }
           else
           {
-            String query =
-              "DELETE FROM " + dataEntry.TABLE_NAME +
-                " WHERE " +
-                  dataEntry.TIME + "=" + data[k].time +
-                  dataEntry.DAY + "=" + data[k].day +
-                  dataEntry.PLACE + "=" + data[k].place +
-              ";";
-            db.rawQuery(query, null);
+            db.delete(
+              dataEntry.TABLE_NAME,
+              dataEntry.TIME + "=? AND " + dataEntry.DAY + "=? AND " + dataEntry.GROUP + "=?",
+              new String[] {data[k].time, ""+data[k].day, data[k].group}
+            );
           }
         } catch (Exception e)
         {
@@ -547,7 +544,7 @@ public class MainActivity extends AppCompatActivity
   private void insertNewGroup (SQLiteDatabase db, EventElement data)
   {
     String queryString =
-            "SELECT * FROM " + groupEntry.TABLE_NAME + " WHERE " + groupEntry.NAME + "=" + data.group + ";";
+            "SELECT * FROM " + groupEntry.TABLE_NAME + " WHERE " + groupEntry.NAME + "='" + data.group + "';";
     Cursor cursor = db.rawQuery(queryString, null);
 
     if ( cursor.getCount() == 0 )
