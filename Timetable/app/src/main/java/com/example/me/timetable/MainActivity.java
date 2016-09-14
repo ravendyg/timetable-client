@@ -326,6 +326,7 @@ public class MainActivity extends AppCompatActivity
     cursor.close();
 
     Collections.sort(favorites, new SearchElement.CustomComparator());
+    Collections.sort(storage);
 
     findViewById(R.id.loading_message).setVisibility(View.GONE);
     findViewById(R.id.loading_spinner).setVisibility(View.GONE);
