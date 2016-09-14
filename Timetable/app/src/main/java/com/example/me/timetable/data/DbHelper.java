@@ -66,7 +66,7 @@ public class DbHelper extends SQLiteOpenHelper
     public static final String FAVORITE = "favorite";
   }
 
-  private static final int DB_VERSION = 83;
+  private static final int DB_VERSION = 84;
 
   static final String DB_NAME = "timetable.db";
 
