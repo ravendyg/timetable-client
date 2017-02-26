@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.venomyd.nopay.timetable.DataModels.ListItem;
 import com.venomyd.nopay.timetable.R;
 
 import java.util.ArrayList;
@@ -14,15 +15,15 @@ import java.util.ArrayList;
 /**
  * Created by me on 24/08/16.
  */
-public class SearchAdapter extends BaseAdapter// implements Filterable
+public class SearchAdapter extends BaseAdapter
 {
   private Context ctx;
   private LayoutInflater inflater;
-  private ArrayList<SearchElement> items;
+  private ArrayList<ListItem> items;
 
-  private ArrayList<SearchElement> fileredItems;
+  private ArrayList<ListItem> fileredItems;
 
-  public SearchAdapter (Context context, ArrayList<SearchElement> data)
+  public SearchAdapter(Context context, ArrayList<ListItem> data)
   {
     ctx = context;
     items = data;
@@ -31,25 +32,25 @@ public class SearchAdapter extends BaseAdapter// implements Filterable
   }
 
   @Override
-  public int getCount ()
+  public int getCount()
   {
     return fileredItems.size();
   }
 
   @Override
-  public Object getItem (int position)
+  public Object getItem(int position)
   {
     return fileredItems.get(position);
   }
 
-  public void clear ()
+  public void clear()
   {
     items.clear();
     fileredItems.clear();
     notifyDataSetChanged();
   }
 
-  public void addAll (ArrayList<SearchElement> list)
+  public void addAll(ArrayList<ListItem> list)
   {
     if (list.size() > 1)
     {
@@ -68,9 +69,9 @@ public class SearchAdapter extends BaseAdapter// implements Filterable
     return position;
   }
 
-  public SearchElement getElement (int position)
+  public ListItem getElement (int position)
   {
-    return (SearchElement) getItem(position);
+    return (ListItem) getItem(position);
   }
 
   @Override
@@ -82,56 +83,12 @@ public class SearchAdapter extends BaseAdapter// implements Filterable
       view = inflater.inflate(R.layout.search_item, parent, false);
     }
 
-    SearchElement element = getElement(position);
+    ListItem element = getElement(position);
 
-    ((TextView) view.findViewById(R.id.search_item_text)).setText(element.text);
+    ((TextView) view.findViewById(R.id.search_item_text)).setText(element.name);
 
     return view;
   }
-/*
-  @Override
-  public Filter getFilter ()
-  {
-    return new Filter ()
-    {
-      @Override
-      protected FilterResults performFiltering (CharSequence constraint)
-      {
-        FilterResults results = new FilterResults();
-
-        if(constraint == null || constraint.length() == 0)
-        {
-          results.values = new ArrayList<SearchElement>(Arrays.asList(new SearchElement[0]));
-          results.count = 0;
-        }
-        else
-        {
-          ArrayList<SearchElement> filterRes = new ArrayList<SearchElement>();
-
-          for (SearchElement elem : items)
-          {
-            if (elem.text.toLowerCase().matches( "(.*)" + constraint.toString().toLowerCase() + "(.*)"))
-            {
-              filterRes.add(elem);
-            }
-          }
-
-          results.values = filterRes;
-          results.count = filterRes.size();
-        }
-
-        return results;
-      }
-
-      @Override
-      protected void publishResults (CharSequence constraint, FilterResults res)
-      {
-        fileredItems = (ArrayList<SearchElement>)res.values;
-        notifyDataSetChanged();
-      }
-    };
-  }
-  */
 }
 
 
