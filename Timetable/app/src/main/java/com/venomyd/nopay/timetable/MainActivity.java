@@ -25,11 +25,14 @@ import com.venomyd.nopay.timetable.Services.DataProvider;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 
 
 public class MainActivity extends AppCompatActivity
 {
   private final String LOG_TAG = this.getClass().getSimpleName();
+
+  private final int HISTORY_SIZE = 10;
 //
 //  private SearchAdapter adapter;
 
@@ -62,7 +65,7 @@ public class MainActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-        searchAdapter = new SearchAdapter(this, searchResult);
+    searchAdapter = new SearchAdapter(this, searchResult);
     searchList = (ListView) this.findViewById(R.id.list_view);
     searchList.setAdapter(searchAdapter);
     searchList.setOnItemClickListener(
@@ -124,8 +127,11 @@ public class MainActivity extends AppCompatActivity
 //              }
 //            }
 
+            updateHistory(element);
+
             Intent tableIntent = new Intent(MainActivity.this, TableActivity.class);
             tableIntent.putExtra("data", element.id);
+            tableIntent.putExtra("name", element.name);
             startActivity(tableIntent);
           }
         }
@@ -221,6 +227,7 @@ public class MainActivity extends AppCompatActivity
 
     Intent intent = new Intent("com.venomyd.nopay.timetable.data.service");
     intent.putExtra("event", "activity-offline");
+    intent.putExtra("type", "main");
     sendBroadcast(intent);
     unregisterReceiver(mainReceiver);
   }
@@ -229,6 +236,37 @@ public class MainActivity extends AppCompatActivity
   {
     searchInput.setText("");
     btn.setVisibility(View.GONE);
+  }
+
+  public void updateHistory(ListItem el)
+  {
+    if (history == null)
+    {
+      return;
+    }
+
+    for (int i = 0; i < history.size(); i++)
+    {
+      if (history.get(i).id.equals(el.id))
+      {
+        if (i == 0)
+        {
+          return;
+        }
+        history.remove(i);
+      }
+    }
+    history.add(0, el);
+    int size = history.size();
+    if (size > HISTORY_SIZE)
+    {
+      history.remove(size - 1);
+    }
+
+    Intent intent = new Intent("com.venomyd.nopay.timetable.data.service");
+    intent.putExtra("event", "new-history");
+    intent.putExtra("history", history);
+    sendBroadcast(intent);
   }
 
 

@@ -1,5 +1,10 @@
 package com.venomyd.nopay.timetable;
 
+import android.app.ActivityManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -11,6 +16,8 @@ import android.widget.ListView;
 import com.venomyd.nopay.timetable.Adapters.RowAdapter;
 import com.venomyd.nopay.timetable.Adapters.RowElement;
 import com.venomyd.nopay.timetable.Adapters.SearchElement;
+import com.venomyd.nopay.timetable.DataModels.ListItem;
+import com.venomyd.nopay.timetable.Services.DataProvider;
 import com.venomyd.nopay.timetable.data.DbHelper;
 import com.venomyd.nopay.timetable.data.DbHelper.dataEntry;
 import com.venomyd.nopay.timetable.data.PeriodsService;
@@ -38,11 +45,21 @@ public class TableActivity extends AppCompatActivity
 
   private RowElement [] items = new RowElement[daysLength * (1 + timesLength)];
 
+  private BroadcastReceiver mainReceiver;
+
+  private String id;
+  private String name;
+
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_table);
+
+    id = getIntent().getStringExtra("id");
+    requestData(id);
+    name = getIntent().getStringExtra("name");
+    setHeader(name);
 
 //    LinearLayout table = new LinearLayout(this);
 //
@@ -69,6 +86,67 @@ public class TableActivity extends AppCompatActivity
 
 //    refreshList();
 
+  }
+
+  @Override
+  public void onResume ()
+  {
+    super.onResume();
+    if (mainReceiver == null)
+    {
+      mainReceiver = new BroadcastReceiver()
+      {
+        @Override
+        public void onReceive(Context context, Intent intent)
+        {
+          String eventType = intent.getStringExtra("event");
+          if (eventType.equals("table"))
+          {
+//            history = (ArrayList<ListItem> ) intent.getSerializableExtra("history");
+          }
+        }
+      };
+    }
+    registerReceiver(mainReceiver, new IntentFilter("timetable_main_activity"));
+
+    if (!isServiceRunning(DataProvider.class))
+    {
+      startService(new Intent(this, DataProvider.class));
+    }
+    else
+    {
+      Intent intent = new Intent("com.venomyd.nopay.timetable.data.service");
+      intent.putExtra("event", "activity-online");
+      intent.putExtra("type", "table");
+      sendBroadcast(intent);
+    }
+  }
+
+  private void requestData(String id)
+  {
+    Intent intent = new Intent("com.venomyd.nopay.timetable.data.service");
+    intent.putExtra("event", "data-request");
+    intent.putExtra("id", id);
+    sendBroadcast(intent);
+  }
+
+  private void setHeader(String name)
+  {
+    ActionBar bar = getSupportActionBar();
+    bar.setTitle(name);
+  }
+
+
+
+  private boolean isServiceRunning(Class<?> serviceClass)
+  {
+    ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+    for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+      if (serviceClass.getName().equals(service.service.getClassName())) {
+        return true;
+      }
+    }
+    return false;
   }
 //
 //  private void refreshList ()

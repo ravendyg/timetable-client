@@ -97,19 +97,33 @@ public class DataProvider extends Service
           else if (eventType.equals("activity-online"))
           {
             activityCount++;
-            if (countDownRunnableLife != null) {
+            if (countDownRunnableLife != null)
+            {
               countDownHandler.removeCallbacks(countDownRunnableLife);
               countDownRunnableLife = null;
             }
             // if activity connected to already running service, provide it with data
             if (dataLoaded)
             {
-              sendDataToMain();
+              if (intent.getStringExtra("type").equals("main"))
+              {
+                sendDataToMain();
+              }
             }
             else
             {
               loadData();
             }
+          }
+          else if (eventType.equals("data-request"))
+          {
+            // check data and sync tsp localy
+            // if not request from server
+            // broadcast
+          }
+          else if (eventType.equals("new-history"))
+          {
+            updateHistory((ArrayList<ListItem>) intent.getSerializableExtra("history"));
           }
         }
       };
@@ -162,6 +176,18 @@ public class DataProvider extends Service
     history = JSONParser.parseHistory(historyStr);
 
     sendHistory();
+  }
+
+  private void updateHistory(ArrayList<ListItem> _history)
+  {
+    if (_history == null)
+    {
+      return;
+    }
+    history = _history;
+    String historyStr = JSONParser.stringifyHistory(_history);
+    String filename = "history";
+    FileAPI.writeFile(getBaseContext(), filename, historyStr);
   }
 
   private void loadSearchList()

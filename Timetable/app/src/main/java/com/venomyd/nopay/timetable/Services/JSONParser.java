@@ -45,6 +45,25 @@ public class JSONParser
     return history;
   }
 
+  public static String stringifyHistory(ArrayList<ListItem> _history)
+  {
+    String out = "[";
+    for (int i = 0; i < _history.size(); i++)
+    {
+      String temp = "{\"id\":\"";
+      if (i > 0)
+      {
+         temp = "," + temp;
+      }
+      ListItem item = _history.get(i);
+      temp += item.id + "\",\"name\":\"";
+      temp += item.name + "\"}";
+      out += temp;
+    }
+    out += "]";
+    return out;
+  }
+
   public static ArrayList<ListItem> parseSearchList(String str)
   {
     ArrayList<ListItem> searchList = new ArrayList<>(Arrays.asList(new ListItem[0]));
