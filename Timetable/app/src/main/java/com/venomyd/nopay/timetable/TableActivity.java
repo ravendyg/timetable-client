@@ -10,12 +10,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.venomyd.nopay.timetable.Adapters.RowAdapter;
 import com.venomyd.nopay.timetable.Adapters.RowElement;
 import com.venomyd.nopay.timetable.Adapters.SearchElement;
+import com.venomyd.nopay.timetable.DataModels.EventList;
 import com.venomyd.nopay.timetable.DataModels.ListItem;
 import com.venomyd.nopay.timetable.Services.DataProvider;
 import com.venomyd.nopay.timetable.data.DbHelper;
@@ -47,8 +49,8 @@ public class TableActivity extends AppCompatActivity
 
   private BroadcastReceiver mainReceiver;
 
-  private String id;
-  private String name;
+  private ListItem item;
+
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -56,10 +58,9 @@ public class TableActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_table);
 
-    id = getIntent().getStringExtra("id");
-    requestData(id);
-    name = getIntent().getStringExtra("name");
-    setHeader(name);
+    item = (ListItem) getIntent().getSerializableExtra("data");
+    requestData(item);
+    setHeader(item.name);
 
 //    LinearLayout table = new LinearLayout(this);
 //
@@ -100,14 +101,15 @@ public class TableActivity extends AppCompatActivity
         public void onReceive(Context context, Intent intent)
         {
           String eventType = intent.getStringExtra("event");
-          if (eventType.equals("table"))
+          if (eventType.equals("resource"))
           {
+            setTable((ArrayList<EventList>) intent.getSerializableExtra("list"));
 //            history = (ArrayList<ListItem> ) intent.getSerializableExtra("history");
           }
         }
       };
     }
-    registerReceiver(mainReceiver, new IntentFilter("timetable_main_activity"));
+    registerReceiver(mainReceiver, new IntentFilter("timetable_table_activity"));
 
     if (!isServiceRunning(DataProvider.class))
     {
@@ -122,11 +124,11 @@ public class TableActivity extends AppCompatActivity
     }
   }
 
-  private void requestData(String id)
+  private void requestData(ListItem item)
   {
     Intent intent = new Intent("com.venomyd.nopay.timetable.data.service");
     intent.putExtra("event", "data-request");
-    intent.putExtra("id", id);
+    intent.putExtra("item", item);
     sendBroadcast(intent);
   }
 
@@ -134,6 +136,18 @@ public class TableActivity extends AppCompatActivity
   {
     ActionBar bar = getSupportActionBar();
     bar.setTitle(name);
+  }
+
+  private void setTable(ArrayList<EventList> data)
+  {
+    if (data != null)
+    {
+      // rewrite RowAdapter to accept EventLists
+      // rowAdapter = new RowAdapter(this, data);
+      tableList = (ListView) findViewById(R.id.table_list);
+      // tableList.setAdapter(rowAdapter);
+      findViewById(R.id.loading_spinner).setVisibility(View.GONE);
+    }
   }
 
 

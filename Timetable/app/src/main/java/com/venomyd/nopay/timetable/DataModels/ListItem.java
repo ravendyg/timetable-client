@@ -10,10 +10,12 @@ public class ListItem implements Serializable
 {
   public String id;
   public String name;
+  public String type = null;
 
-  public ListItem(String _id, String _name)
+  public ListItem(String _id, String _name, String _type)
   {
     id = _id;
     name = _name;
+    type = _type;
   }
 }

@@ -19,6 +19,8 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 
+import com.venomyd.nopay.timetable.Config;
+import com.venomyd.nopay.timetable.DataModels.EventList;
 import com.venomyd.nopay.timetable.DataModels.ListItem;
 import com.venomyd.nopay.timetable.R;
 
@@ -27,10 +29,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by me on 26/02/17.
@@ -49,13 +56,21 @@ public class DataProvider extends Service
   private Runnable countDownRunnableLife;
   private boolean dataLoaded = false;
 
-  private ArrayList<ListItem> history, searchList = null;
+  private ArrayList<ListItem> history = null, searchList = null;
+
+  private HashMap<String, ArrayList<EventList>> resources = new HashMap<>();
+  private HashMap<String, String> resourceTsp = new HashMap<>();
 
   private SharedPreferences pref;
 
   private BroadcastReceiver mainReceiver;
 
   private BroadcastReceiver networkStateReceiver = null;
+  boolean waitSearchListUpdate = false;
+  long searchListTsp = 0;
+
+  private ArrayList<ListItem> itemsToUpdate = new ArrayList<>(Arrays.asList(new ListItem[0]));
+  private ArrayList<Long> itemsToUpdateTsp = new ArrayList<Long>();
 
   public void onCreate()
   {
@@ -73,6 +88,32 @@ public class DataProvider extends Service
       editor.putString("apiKey", apiKey);
       editor.commit();
     }
+
+    networkStateReceiver = new BroadcastReceiver() {
+      @Override
+      public void onReceive(Context context, Intent intent) {
+        ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo ni = manager.getActiveNetworkInfo();
+        if (ni != null)
+        {
+          if (waitSearchListUpdate)
+          {
+            syncSearchList();
+          }
+          int position = itemsToUpdate.size() - 1;
+          while (position >= 0)
+          {
+            ListItem _item = itemsToUpdate.get(position);
+            itemsToUpdate.remove(position);
+            long tsp = itemsToUpdateTsp.get(position);
+            itemsToUpdateTsp.remove(position);
+            updateResource(_item, tsp);
+            position = itemsToUpdate.size() - 1;
+          }
+        }
+      }
+    };
+    registerReceiver(networkStateReceiver, new IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION));
 
 
     loadData();
@@ -117,9 +158,41 @@ public class DataProvider extends Service
           }
           else if (eventType.equals("data-request"))
           {
-            // check data and sync tsp localy
-            // if not request from server
-            // broadcast
+            ListItem item = (ListItem) intent.getSerializableExtra("item");
+            long tsp = 0;
+            String fileName = "resource_" + item.id;
+            ArrayList<EventList> resource = null;
+
+            if (resources.containsValue(item.id))
+            {
+              resource = resources.get(item.id);
+              tsp = Long.parseLong(resourceTsp.get(item.id));
+            }
+            else if (FileAPI.isFileExists(getBaseContext(), fileName))
+            {
+              String resourceStr = FileAPI.readFile(getBaseContext(), fileName);
+              resource = JSONParser.parceResource(resourceStr);
+              tsp = JSONParser.getLastUpdateTsp(resourceStr);
+              resources.put(item.id, resource);
+              resourceTsp.put(item.id, "" + tsp);
+            }
+
+            if (resource != null)
+            {
+              sendResource(resource, false);
+            }
+            if (System.currentTimeMillis() - tsp > Config.updateValidFor)
+            {
+              if (isOnline())
+              {
+                updateResource(item, tsp);
+              }
+              else
+              {
+                itemsToUpdate.add(item);
+                itemsToUpdateTsp.add(tsp);
+              }
+            }
           }
           else if (eventType.equals("new-history"))
           {
@@ -144,6 +217,101 @@ public class DataProvider extends Service
     {
       unregisterReceiver(networkStateReceiver);
     }
+    if (networkStateReceiver != null)
+    {
+      unregisterReceiver(networkStateReceiver);
+    }
+  }
+
+  private String ajax(String url)
+  {
+    String out = "";
+
+    HttpURLConnection connection = null;
+    BufferedReader reader = null;
+
+    try
+    {
+      URL syncUrl = new URL(url);
+
+      connection = (HttpURLConnection) syncUrl.openConnection();
+      connection.setRequestMethod("GET");
+      connection.setConnectTimeout(5000);
+      connection.setReadTimeout(5000);
+      connection.connect();
+
+      InputStream input = connection.getInputStream();
+      StringBuffer buffer = new StringBuffer();
+
+      if (input != null) {
+        reader = new BufferedReader(new InputStreamReader(input));
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+          buffer.append(line + "\n");
+        }
+
+        out = buffer.toString();
+      }
+    }
+    catch (SocketTimeoutException e)
+    {
+      Log.e(LOG_TAG, "error", e);
+    }
+    catch (IOException e)
+    {
+      Log.e(LOG_TAG, "error", e);
+    }
+    finally
+    {
+      if (connection != null) {
+        connection.disconnect();
+      }
+      if (reader != null) {
+        try {
+          reader.close();
+        } catch (final IOException e) {
+          Log.e(LOG_TAG, "closing stream", e);
+        }
+      }
+    }
+
+    return out;
+  }
+
+  private void updateResource(final ListItem item, final long _tsp)
+  {
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        try
+        {
+          String url = getString(R.string.base_url) +
+                  "sync/" + item.type +
+                  "?tsp=" + _tsp +
+                  "&id=" + URLEncoder.encode(item.id, "utf-8") +
+                  "&api_key=" + apiKey;
+
+          String response = ajax(url);
+
+          if (response.length() > 0)
+          {
+            ArrayList<EventList> resource = JSONParser.parceResource(response);
+            long tsp = JSONParser.getLastUpdateTsp(response);
+            resources.put(item.id, resource);
+            resourceTsp.put(item.id, "" + tsp);
+            sendResource(resource, true);
+
+            String filename = "resource_" + item.id;
+            FileAPI.writeFile(getBaseContext(), filename, response);
+          }
+        }
+        catch (UnsupportedEncodingException err)
+        {
+          Log.e(LOG_TAG, "parse id", err);
+        }
+      }
+    }).start();
   }
 
   private void startFinalCountdown()
@@ -192,29 +360,16 @@ public class DataProvider extends Service
 
   private void loadSearchList()
   {
-    final long now = System.currentTimeMillis();
-    final long tsp = loadSearchListFromDisk();
+    long now = System.currentTimeMillis();
+    searchListTsp = loadSearchListFromDisk();
     long lastListSync = pref.getLong("searchListSync", 0);
     if (isOnline() && now - lastListSync > SYNC_VALID_FOR)
     {
-      syncSearchList(now, tsp);
+      syncSearchList();
     }
     else if (now - lastListSync > SYNC_VALID_FOR)
     {
-      networkStateReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-          ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-          NetworkInfo ni = manager.getActiveNetworkInfo();
-          if (ni != null)
-          {
-            syncSearchList(now, tsp);
-            unregisterReceiver(networkStateReceiver);
-            networkStateReceiver = null;
-          }
-        }
-      };
-      registerReceiver(networkStateReceiver, new IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION));
+      waitSearchListUpdate = true;
     }
   }
 
@@ -231,6 +386,15 @@ public class DataProvider extends Service
     sendSearchList();
 
     return JSONParser.getSearchListTsp(listStr);
+  }
+
+  private void sendResource(ArrayList<EventList> list, boolean forceUpdate)
+  {
+    Intent intent = new Intent("timetable_table_activity");
+    intent.putExtra("event", "resource");
+    intent.putExtra("list", list);
+    intent.putExtra("forceUpdate", forceUpdate);
+    getBaseContext().sendBroadcast(intent);
   }
 
   private void sendHistory()
@@ -254,78 +418,34 @@ public class DataProvider extends Service
     sendHistory();
   }
 
-  private void syncSearchList(final long now, final long tsp)
+  private void syncSearchList()
   {
     new Thread(new Runnable() {
       @Override
-      public void run() {
-        HttpURLConnection connection = null;
-        BufferedReader reader = null;
+      public void run()
+      {
+        waitSearchListUpdate = false;
+        long now = System.currentTimeMillis();
 
-        String syncWebStr = "";
-        try
+        String url = getString(R.string.base_url) +
+                "lists?" +
+                "tsp=" + searchListTsp +
+                "&api_key=" + apiKey;
+
+        String syncWebStr = ajax(url);
+
+        if (syncWebStr.length() > 0)
         {
-          URL syncUrl = new URL(
-                  getString(R.string.base_url) +
-                          "lists?" +
-                          "tsp=" + tsp +
-                          "&api_key=" + apiKey
-          );
+          dataLoaded = true;
+          searchList = JSONParser.parseSearchList(syncWebStr);
+          sendSearchList();
 
-          connection = (HttpURLConnection) syncUrl.openConnection();
-          connection.setRequestMethod("GET");
-          connection.setConnectTimeout(5000);
-          connection.setReadTimeout(5000);
-          connection.connect();
+          FileAPI.writeFile(getBaseContext(), "list", syncWebStr);
 
-          InputStream input = connection.getInputStream();
-          StringBuffer buffer = new StringBuffer();
-
-          if (input != null) {
-            reader = new BufferedReader(new InputStreamReader(input));
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-              buffer.append(line + "\n");
-            }
-
-            syncWebStr = buffer.toString();
-          }
+          SharedPreferences.Editor editor = pref.edit();
+          editor.putLong("searchListSync", now);
+          editor.commit();
         }
-        catch (SocketTimeoutException e)
-        {
-          Log.e(LOG_TAG, "error", e);
-        }
-        catch (IOException e)
-        {
-          Log.e(LOG_TAG, "error", e);
-        }
-        finally
-        {
-          if (connection != null) {
-            connection.disconnect();
-          }
-          if (reader != null) {
-            try {
-              reader.close();
-            } catch (final IOException e) {
-              Log.e(LOG_TAG, "closing stream", e);
-            }
-          }
-        }
-
-          if (syncWebStr.length() > 0)
-          {
-            dataLoaded = true;
-            searchList = JSONParser.parseSearchList(syncWebStr);
-            sendSearchList();
-
-            FileAPI.writeFile(getBaseContext(), "list", syncWebStr);
-
-            SharedPreferences.Editor editor = pref.edit();
-            editor.putLong("searchListSync", now);
-            editor.commit();
-          }
       }
     }).start();
   }

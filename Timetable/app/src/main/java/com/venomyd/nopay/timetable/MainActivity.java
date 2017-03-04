@@ -76,62 +76,10 @@ public class MainActivity extends AppCompatActivity
           {
             ListItem element = searchAdapter.getElement(position);
 
-//            if ( element.fav <= maxFav )
-//            {
-//              ContentValues cv = new ContentValues();
-//
-//              if (element.type.equals("group"))
-//              {
-//                cv.put(groupEntry.FAVORITE, ++maxFav);
-//
-//                db.update(
-//                        groupEntry.TABLE_NAME,
-//                        cv,
-//                        groupEntry.NAME + "=?",
-//                        new String[] {element.text}
-//                );
-//              }
-//              else
-//              {
-//                cv.put(personEntry.FAVORITE, ++maxFav);
-//
-//                db.update(
-//                        personEntry.TABLE_NAME,
-//                        cv,
-//                        personEntry.PERSON_ID + "=?",
-//                        new String[] {""+element.id}
-//                );
-//              }
-//
-//              if ( maxFav - minFav >= 5 )
-//              {
-//                cv.put(groupEntry.FAVORITE, 0);
-//
-//                db.update(
-//                        groupEntry.TABLE_NAME,
-//                        cv,
-//                        groupEntry.FAVORITE + "=?",
-//                        new String[] {""+minFav}
-//                );
-//
-//                cv.put(personEntry.FAVORITE, 0);
-//
-//                db.update(
-//                        personEntry.TABLE_NAME,
-//                        cv,
-//                        personEntry.FAVORITE + "=?",
-//                        new String[] {""+minFav}
-//                );
-//
-//                minFav++;
-//              }
-//            }
-
             updateHistory(element);
 
             Intent tableIntent = new Intent(MainActivity.this, TableActivity.class);
-            tableIntent.putExtra("data", element.id);
-            tableIntent.putExtra("name", element.name);
+            tableIntent.putExtra("data", element);
             startActivity(tableIntent);
           }
         }

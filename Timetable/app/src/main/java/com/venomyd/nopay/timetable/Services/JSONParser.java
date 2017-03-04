@@ -2,6 +2,7 @@ package com.venomyd.nopay.timetable.Services;
 
 import android.util.Log;
 
+import com.venomyd.nopay.timetable.DataModels.EventList;
 import com.venomyd.nopay.timetable.DataModels.ListItem;
 
 import org.json.JSONArray;
@@ -33,7 +34,8 @@ public class JSONParser
           JSONObject temp = rawHistory.getJSONObject(i);
           String id = temp.getString("id");
           String name = temp.getString("name");
-          history.add(new ListItem(id, name));
+          String type = temp.getString("type");
+          history.add(new ListItem(id, name, type));
         }
       }
       catch (JSONException err)
@@ -57,10 +59,39 @@ public class JSONParser
       }
       ListItem item = _history.get(i);
       temp += item.id + "\",\"name\":\"";
-      temp += item.name + "\"}";
+      temp += item.name + "\",\"type\":\"";
+      temp += item.type + "\"}";
       out += temp;
     }
     out += "]";
+    return out;
+  }
+
+  public static ArrayList<EventList> parceResource(String str)
+  {
+    ArrayList<EventList> out = new ArrayList<EventList>(Arrays.asList(new EventList[0]));
+    EventList temp;
+    for (int day = 0; day < 7; day++)
+    {
+//      temp = new EventList("" + day, )
+//      for
+    }
+
+    return out;
+  }
+
+  public static long getLastUpdateTsp(String str)
+  {
+    long out = 0;
+    try
+    {
+      JSONObject temp = new JSONObject(str);
+      out = temp.getLong("tsp");
+    }
+    catch (JSONException err)
+    {
+      Log.e(LOG_TAG, "parse search list", err);
+    }
     return out;
   }
 
@@ -78,14 +109,14 @@ public class JSONParser
         for (int i = 0; i < temp.length(); i++ )
         {
           String tempItem = temp.getString(i);
-          searchList.add(new ListItem(tempItem, tempItem));
+          searchList.add(new ListItem(tempItem, tempItem, "groups"));
         }
 
         temp = rawList.getJSONArray("places");
         for (int i = 0; i < temp.length(); i++ )
         {
           String tempItem = temp.getString(i);
-          searchList.add(new ListItem(tempItem, tempItem));
+          searchList.add(new ListItem(tempItem, tempItem, "places"));
         }
 
         JSONArray _temp = rawList.getJSONArray("teachers");
@@ -93,7 +124,7 @@ public class JSONParser
         {
           String id = _temp.getJSONObject(i).getString("teacherId");
           String name = _temp.getJSONObject(i).getString("name");
-          searchList.add(new ListItem(id, name));
+          searchList.add(new ListItem(id, name, "teachers"));
         }
       }
       catch (JSONException err)
