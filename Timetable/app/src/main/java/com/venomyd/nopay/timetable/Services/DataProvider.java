@@ -106,6 +106,10 @@ public class DataProvider extends Service
             {
               sendDataToMain();
             }
+            else
+            {
+              loadData();
+            }
           }
         }
       };

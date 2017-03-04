@@ -62,42 +62,7 @@ public class MainActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-    if (mainReceiver == null)
-    {
-      mainReceiver = new BroadcastReceiver()
-      {
-        @Override
-        public void onReceive(Context context, Intent intent)
-        {
-          String eventType = intent.getStringExtra("event");
-          if (eventType.equals("history"))
-          {
-            history = (ArrayList<ListItem> ) intent.getSerializableExtra("history");
-            tryInit();
-          }
-          else if (eventType.equals("searchList"))
-          {
-            list = (ArrayList<ListItem> ) intent.getSerializableExtra("searchList");
-            tryInit();
-          }
-        }
-      };
-    }
-    registerReceiver(mainReceiver, new IntentFilter("timetable_main_activity"));
-
-    if (!isServiceRunning(DataProvider.class))
-    {
-      startService(new Intent(this, DataProvider.class));
-    }
-    else
-    {
-      Intent intent = new Intent("com.venomyd.nopay.timetable.data.service");
-      intent.putExtra("event", "activity-online");
-      sendBroadcast(intent);
-    }
-
-
-    searchAdapter = new SearchAdapter(this, searchResult);
+        searchAdapter = new SearchAdapter(this, searchResult);
     searchList = (ListView) this.findViewById(R.id.list_view);
     searchList.setAdapter(searchAdapter);
     searchList.setOnItemClickListener(
@@ -199,7 +164,7 @@ public class MainActivity extends AppCompatActivity
 
       TextView view = (TextView) findViewById(R.id.search_bar_auto);
 
-      filterSearchResults("");
+      filterSearchResults(view.getText().toString());
 
       if (history.size() == 0)
       {
@@ -214,16 +179,50 @@ public class MainActivity extends AppCompatActivity
   public void onResume ()
   {
     super.onResume();
+    if (mainReceiver == null)
+    {
+      mainReceiver = new BroadcastReceiver()
+      {
+        @Override
+        public void onReceive(Context context, Intent intent)
+        {
+          String eventType = intent.getStringExtra("event");
+          if (eventType.equals("history"))
+          {
+            history = (ArrayList<ListItem> ) intent.getSerializableExtra("history");
+            tryInit();
+          }
+          else if (eventType.equals("searchList"))
+          {
+            list = (ArrayList<ListItem> ) intent.getSerializableExtra("searchList");
+            tryInit();
+          }
+        }
+      };
+    }
+    registerReceiver(mainReceiver, new IntentFilter("timetable_main_activity"));
+
+    if (!isServiceRunning(DataProvider.class))
+    {
+      startService(new Intent(this, DataProvider.class));
+    }
+    else
+    {
+      Intent intent = new Intent("com.venomyd.nopay.timetable.data.service");
+      intent.putExtra("event", "activity-online");
+      sendBroadcast(intent);
+    }
   }
 
   @Override
-  public void onDestroy ()
+  public void onPause()
   {
-    super.onDestroy();
+    super.onPause();
 
-    Intent intent = new Intent("info.timetable.data-service");
+    Intent intent = new Intent("com.venomyd.nopay.timetable.data.service");
     intent.putExtra("event", "activity-offline");
     sendBroadcast(intent);
+    unregisterReceiver(mainReceiver);
   }
 
   public void clearSearchInput (View btn)
