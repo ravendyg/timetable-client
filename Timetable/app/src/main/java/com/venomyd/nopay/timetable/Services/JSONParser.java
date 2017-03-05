@@ -13,6 +13,8 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Objects;
 
 
@@ -250,14 +252,31 @@ public class JSONParser
 
   private static String reduceGroupsList(JSONArray groups)
   {
+    HashMap<String , String> gr = new HashMap<>();
     String out = "";
     int len = groups.length();
     try
     {
       for (int i = 0; i < len; i++)
       {
-        out += groups.getString(i);
-        if (i < len - 1)
+        String raw = groups.getString(i);
+        String key = raw.replace(".*\\.[0-9]$", "");
+        if (gr.containsKey(key))
+        {
+          gr.put(key, key);
+        }
+        else
+        {
+          gr.put(key, raw);
+        }
+        gr.put(key, raw);
+      }
+      Iterator<String> it = gr.values().iterator();
+      while (it.hasNext())
+      {
+        len--;
+        out += it.next();
+        if (len > 0)
         {
           out += ", ";
         }

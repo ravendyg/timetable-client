@@ -127,19 +127,10 @@ public class RowAdapter extends BaseAdapter
       case POSITION_EVEN:
         _item = _item == null ? element.items.get(2) : _item;
 
-        String line3;
-        if (element.type == TYPE_ITEM_GROUP)
-        {
-          line3 = _item.line3;
-        }
-        else
-        {
-          line3 = "reduce groups";
-        }
         ((TextView) view.findViewById(R.id.row_time)).setText(element.time);
         ((TextView) view.findViewById(R.id.name)).setText(_item.name);
         ((TextView) view.findViewById(R.id.line2)).setText(_item.line2);
-        ((TextView) view.findViewById(R.id.line3)).setText(line3);
+        ((TextView) view.findViewById(R.id.line3)).setText(_item.line3);
 
         if (element.position == POSITION_ODD )
         {
@@ -154,25 +145,14 @@ public class RowAdapter extends BaseAdapter
       case POSITION_BOTH:
         LessonItem _item1 = element.items.get(1);
         LessonItem _item2 = element.items.get(2);
-        String line31, line32;
-        if (element.type == TYPE_ITEM_GROUP)
-        {
-          line31 = _item1.line3;
-          line32 = _item2.line3;
-        }
-        else
-        {
-          line31 = "reduce groups 1";
-          line32 = "reduce groups 2";
-        }
 
         ((TextView) view.findViewById(R.id.row_time)).setText(element.time);
         ((TextView) view.findViewById(R.id.name1)).setText(_item1.name);
         ((TextView) view.findViewById(R.id.line21)).setText(_item1.line2);
-        ((TextView) view.findViewById(R.id.line31)).setText(line31);
+        ((TextView) view.findViewById(R.id.line31)).setText(_item1.line3);
         ((TextView) view.findViewById(R.id.name2)).setText(_item2.name);
         ((TextView) view.findViewById(R.id.line22)).setText(_item2.line2);
-        ((TextView) view.findViewById(R.id.line32)).setText(line32);
+        ((TextView) view.findViewById(R.id.line32)).setText(_item2.line3);
       break;
 
       case POSITION_HEADER:
