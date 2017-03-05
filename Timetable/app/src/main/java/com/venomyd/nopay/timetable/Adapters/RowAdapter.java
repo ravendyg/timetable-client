@@ -7,6 +7,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.venomyd.nopay.timetable.DataModels.Lesson;
+import com.venomyd.nopay.timetable.DataModels.LessonItem;
 import com.venomyd.nopay.timetable.R;
 import com.venomyd.nopay.timetable.data.PeriodsService;
 
@@ -17,21 +19,25 @@ import java.util.ArrayList;
  */
 public class RowAdapter extends BaseAdapter
 {
-  private static final int TYPE_MAX_COUNT = 6;
+  private static final int TYPE_MAX_COUNT = 50;
 
-  private static final int TYPE_ITEM = 0;
-  private static final int TYPE_ITEM_LEFT = 1;
-  private static final int TYPE_ITEM_RIGHT = 2;
-  private static final int TYPE_ITEM_DOUBLE = 3;
-  private static final int TYPE_EMPTY = 4;
-  private static final int TYPE_SEPARATOR = 5;
+  private static final int TYPE_ITEM_GROUP = 1;
+  private static final int TYPE_ITEM_TEACHER = 2;
+  private static final int TYPE_ITEM_PLACE = 3;
+
+  private static final int POSITION_HEADER = -1;
+  private static final int POSITION_EVERY = 0;
+  private static final int POSITION_ODD = 1;
+  private static final int POSITION_EVEN = 2;
+  private static final int POSITION_BOTH = 3;
+  private static final int POSITION_EMPTY = 4;
 
   private Context ctx;
   private LayoutInflater inflater;
-  private ArrayList<RowElement> items;
+  private ArrayList<Lesson> items;
   private String [] times = PeriodsService.getTimes();
 
-  public RowAdapter (Context context, ArrayList<RowElement> data)
+  public RowAdapter (Context context, ArrayList<Lesson> data)
   {
     ctx = context;
     items = data;
@@ -50,13 +56,13 @@ public class RowAdapter extends BaseAdapter
     return items.get(position);
   }
 
-  public void clear ()
+  public void clear()
   {
     items.clear();
     notifyDataSetChanged();
   }
 
-  public void addAll (ArrayList<RowElement> list)
+  public void addAll(ArrayList<Lesson> list)
   {
     items.addAll(list);
   }
@@ -67,9 +73,9 @@ public class RowAdapter extends BaseAdapter
     return position;
   }
 
-  public RowElement getElement (int position)
+  public Lesson getElement (int position)
   {
-    return (RowElement) getItem(position);
+    return (Lesson) getItem(position);
   }
 
   @Override
@@ -77,98 +83,104 @@ public class RowAdapter extends BaseAdapter
   {
     View view = _view;
 
-    int type = getItemViewType(position);
-
-    RowElement element = getElement(position);
+    Lesson element = getElement(position);
 
     if (view == null)
     {
-      switch (type)
+      switch (element.position)
       {
-        case TYPE_ITEM:
+        case POSITION_EVERY:
           view = inflater.inflate(R.layout.row_item, parent, false);
           ( (TextView) view.findViewById(R.id.item_day)).setText("");
         break;
 
-        case TYPE_ITEM_LEFT:
+        case POSITION_ODD:
           view = inflater.inflate(R.layout.row_item, parent, false);
 //          ( (TextView) view.findViewById(R.id.item_day)).setText(R.string.odd);
         break;
 
-        case TYPE_ITEM_RIGHT:
+        case POSITION_EVEN:
           view = inflater.inflate(R.layout.row_item, parent, false);
 //          ( (TextView) view.findViewById(R.id.item_day)).setText(R.string.even);
         break;
 
-        case TYPE_ITEM_DOUBLE:
+        case POSITION_BOTH:
           view = inflater.inflate(R.layout.row_double_item, parent, false);
         break;
 
-        case TYPE_SEPARATOR:
-          view = inflater.inflate(R.layout.row_header, parent, false);
+        case POSITION_EMPTY:
+          view = inflater.inflate(R.layout.empty_row_item, parent, false);
         break;
 
-        default:
-          view = inflater.inflate(R.layout.empty_row_item, parent, false);
+        case POSITION_HEADER:
+          view = inflater.inflate(R.layout.row_header, parent, false);
       }
     }
 
-    String person1, person2;
-    String timeLabel = "";
-    if ( element.time != -1 )
+    LessonItem _item = null;
+    switch (element.position)
     {
-      timeLabel = times[element.time];
-      if ( timeLabel.length() == 4 )
-      {
-        timeLabel = "0" + timeLabel;
-      }
-    }
+      case POSITION_EVERY:
+        _item = element.items.get(0);
+      case POSITION_ODD:
+        _item = _item == null ? element.items.get(1) : _item;
+      case POSITION_EVEN:
+        _item = _item == null ? element.items.get(2) : _item;
 
+        String line3;
+        if (element.type == TYPE_ITEM_GROUP)
+        {
+          line3 = _item.line3;
+        }
+        else
+        {
+          line3 = "reduce groups";
+        }
+        ((TextView) view.findViewById(R.id.row_time)).setText(element.time);
+        ((TextView) view.findViewById(R.id.name)).setText(_item.name);
+        ((TextView) view.findViewById(R.id.line2)).setText(_item.line2);
+        ((TextView) view.findViewById(R.id.line3)).setText(line3);
 
-    switch (type)
-    {
-      case TYPE_ITEM:
-      case TYPE_ITEM_LEFT:
-        person1 = reduceGroups(element.person[0]);
-        ((TextView) view.findViewById(R.id.row_time)).setText(timeLabel);
-        ((TextView) view.findViewById(R.id.item_title)).setText(element.title[0]);
-        ((TextView) view.findViewById(R.id.item_content_place)).setText(element.place[0]);
-        ((TextView) view.findViewById(R.id.item_content_person)).setText(person1);
-
-        if ( type == TYPE_ITEM_LEFT )
+        if (element.position == POSITION_ODD )
         {
           ( (TextView) view.findViewById(R.id.item_day)).setText(R.string.odd);
         }
+        else if (element.position == POSITION_EVEN)
+        {
+          ( (TextView) view.findViewById(R.id.item_day)).setText(R.string.even);
+        }
       break;
 
-      case TYPE_ITEM_RIGHT:
-        person2 = reduceGroups(element.person[1]);
-        ((TextView) view.findViewById(R.id.row_time)).setText(timeLabel);
-        ((TextView) view.findViewById(R.id.item_title)).setText(element.title[1]);
-        ((TextView) view.findViewById(R.id.item_content_place)).setText(element.place[1]);
-        ((TextView) view.findViewById(R.id.item_content_person)).setText(person2);
+      case POSITION_BOTH:
+        LessonItem _item1 = element.items.get(1);
+        LessonItem _item2 = element.items.get(2);
+        String line31, line32;
+        if (element.type == TYPE_ITEM_GROUP)
+        {
+          line31 = _item1.line3;
+          line32 = _item2.line3;
+        }
+        else
+        {
+          line31 = "reduce groups 1";
+          line32 = "reduce groups 2";
+        }
 
-        ( (TextView) view.findViewById(R.id.item_day)).setText(R.string.even);
+        ((TextView) view.findViewById(R.id.row_time)).setText(element.time);
+        ((TextView) view.findViewById(R.id.name1)).setText(_item1.name);
+        ((TextView) view.findViewById(R.id.line21)).setText(_item1.line2);
+        ((TextView) view.findViewById(R.id.line31)).setText(line31);
+        ((TextView) view.findViewById(R.id.name2)).setText(_item2.name);
+        ((TextView) view.findViewById(R.id.line22)).setText(_item2.line2);
+        ((TextView) view.findViewById(R.id.line32)).setText(line32);
       break;
 
-      case TYPE_ITEM_DOUBLE:
-        person1 = reduceGroups(element.person[0]);
-        person2 = reduceGroups(element.person[1]);
-        ((TextView) view.findViewById(R.id.row_time)).setText(timeLabel);
-        ((TextView) view.findViewById(R.id.odd_item_title)).setText(element.title[0]);
-        ((TextView) view.findViewById(R.id.odd_item_content_place)).setText(element.place[0]);
-        ((TextView) view.findViewById(R.id.odd_item_content_person)).setText(person1);
-        ((TextView) view.findViewById(R.id.even_item_title)).setText(element.title[1]);
-        ((TextView) view.findViewById(R.id.even_item_content_place)).setText(element.place[1]);
-        ((TextView) view.findViewById(R.id.even_item_content_person)).setText(person2);
-      break;
-
-      case TYPE_SEPARATOR:
-        ((TextView) view.findViewById(R.id.row_header)).setText(element.title[0]);
+      case POSITION_HEADER:
+        ((TextView) view.findViewById(R.id.row_header)).setText(element.dayName);
       break;
 
       default:
-        ((TextView) view.findViewById(R.id.row_time)).setText(timeLabel);
+        ((TextView) view.findViewById(R.id.row_time)).setText(element.time);
 
     }
 
@@ -184,84 +196,9 @@ public class RowAdapter extends BaseAdapter
   @Override
   public int getItemViewType(int position)
   {
-    RowElement element = getElement(position);
+    Lesson element = getElement(position);
 
-    int out;
-
-    switch (element.type)
-    {
-      case 0:
-        out = TYPE_ITEM;
-      break;
-
-      case 1:
-        out = TYPE_ITEM_LEFT;
-      break;
-
-      case 2:
-        out = TYPE_ITEM_RIGHT;
-      break;
-
-      case 3:
-        out = TYPE_ITEM_DOUBLE;
-      break;
-
-      default:
-        out = TYPE_EMPTY;
-    }
-
-    // rows without data - either headers or just empty
-    int type = position % (1 + PeriodsService.getTimes().length);
-    return type == 0 ? TYPE_SEPARATOR : out;
-  }
-
-  private String reduceGroups(String input)
-  {
-    if ( !input.matches(".*[0-9]+.*") )
-    {
-      return input;
-    }
-    String [] options = input.split(",");
-    ArrayList<String> result = new ArrayList<String>();
-
-    for (int i = 0; i < options.length; i++)
-    {
-      options[i] = options[i].replaceAll("(^\\s|\\s$)", "");
-      options[i] = options[i].replaceAll("\\..*$", "");
-    }
-    for (int i = 0; i < options.length; i++)
-    {
-      if ( result.size() == 0 )
-      {
-        result.add( options[i] );
-      }
-      else
-      {
-        boolean notFound = true;
-        for (int j = 0; j < result.size(); j++)
-        {
-          if ( result.get(j).equals(options[i]) )
-          {
-            notFound = false;
-            break;
-          }
-        }
-        if ( notFound )
-        {
-          result.add( options[i] );
-        }
-      }
-    }
-    String output = "";
-    for (int j = result.size() - 1; j >= 0 ; j--)
-    {
-      if ( result.get(j).length() > 0 )
-      {
-        output += result.get(j) + ", ";
-      }
-    }
-    output = output.replaceAll("\\,\\s$", "");
-    return output;
+    return element.type * 10 + element.position;
   }
 }
 

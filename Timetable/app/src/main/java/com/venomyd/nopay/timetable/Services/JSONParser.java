@@ -2,7 +2,9 @@ package com.venomyd.nopay.timetable.Services;
 
 import android.util.Log;
 
-import com.venomyd.nopay.timetable.DataModels.EventList;
+import com.venomyd.nopay.timetable.Config;
+import com.venomyd.nopay.timetable.DataModels.Lesson;
+import com.venomyd.nopay.timetable.DataModels.LessonItem;
 import com.venomyd.nopay.timetable.DataModels.ListItem;
 
 import org.json.JSONArray;
@@ -11,6 +13,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 
 
 /**
@@ -67,14 +70,104 @@ public class JSONParser
     return out;
   }
 
-  public static ArrayList<EventList> parceResource(String str)
+  public static ArrayList<Lesson> parseResource(String str, String type)
   {
-    ArrayList<EventList> out = new ArrayList<EventList>(Arrays.asList(new EventList[0]));
-    EventList temp;
-    for (int day = 0; day < 7; day++)
+    ArrayList<Lesson> out = new ArrayList<Lesson>(Arrays.asList(new Lesson[0]));
+    Lesson temp;
+
+    try
     {
-//      temp = new EventList("" + day, )
-//      for
+      int _type = type.equals("groups")
+        ? 1
+        : type.equals("teachers")
+        ? 2
+        : 3
+        ;
+      JSONObject events = (new JSONObject(str)).getJSONObject("events");
+      for (int day = 1; day <= 7; day++)
+      {
+//        int day = 1;
+        temp = new Lesson(-1, null, null, null, null);
+        temp.dayName = Config.days[day - 1];
+        out.add(temp);
+        for (int bell = 0; bell < 7; bell++)
+        {
+          ArrayList<LessonItem> _items = new ArrayList<>(Arrays.asList(new LessonItem[0]));
+
+          String _bell = Config.bells[bell],
+                 _longBell1 = Config.longBells[bell*2],
+                 _longBell2 = Config.longBells[bell*2 + 1];
+          if (events.has(day + "|" + bell))
+          {
+            JSONArray ev = events.getJSONArray(day + "|" + bell);
+            for (int j = 0; j < 3; j++)
+            {
+              if (ev.isNull(j))
+              {
+                _items.add(null);
+              }
+              else
+              {
+                JSONObject evUnit = ev.getJSONObject(j);
+                ArrayList<ListItem> links = new ArrayList<>(Arrays.asList(new ListItem[0]));
+                ListItem _lIt;
+                String name = evUnit.getString("name");
+                String line2 = "", line3 = "";
+                if (type.equals("places"))
+                {
+                  if (evUnit.has("teacherName"))
+                  {
+                    line2 = evUnit.getString("teacherName");
+                  }
+                  if (evUnit.has("teacherId"))
+                  {
+                    _lIt = new ListItem(evUnit.getString("teacherId"), line2, "teachers");
+                    links.add(_lIt);
+                  }
+                }
+                else if (evUnit.has("placeId"))
+                {
+                  line2 = evUnit.getString("placeId");
+                  _lIt = new ListItem(line2, line2, "places");
+                  links.add(_lIt);
+                }
+                if (type.equals("groups"))
+                {
+                  if (evUnit.has("teacherName"))
+                  {
+                    line3 = evUnit.getString("teacherName");
+                  }
+                  if (evUnit.has("teacherId"))
+                  {
+                    _lIt = new ListItem(evUnit.getString("teacherId"), line3, "teachers");
+                    links.add(_lIt);
+                  }
+                }
+                else if (evUnit.has("groups"))
+                {
+                  JSONArray _groups = evUnit.getJSONArray("groups");
+                  int len = _groups.length();
+                  line3 = reduceGroupsList(_groups);
+                  for (int i = 0; i < len; i++)
+                  {
+                    String _group = _groups.getString(i);
+                    _lIt = new ListItem(_group, _group, "groups");
+                    links.add(_lIt);
+                  }
+                }
+                _items.add(new LessonItem(name, line2, line3, links));
+              }
+            }
+            // if bells overloaded
+          }
+          temp = new Lesson(_type, _items, _bell, _longBell1, _longBell2);
+          out.add(temp);
+        }
+      }
+    }
+    catch (JSONException err)
+    {
+      Log.e(LOG_TAG, "parse resource", err);
     }
 
     return out;
@@ -154,128 +247,27 @@ public class JSONParser
     return tsp;
   }
 
-//  public static long getTimestamp(JSONObject input)
-//  {
-//    long timestamp = 0;
-//    try
-//    {
-//      timestamp = input.getLong("timestamp");
-//    }
-//    catch (JSONException err)
-//    {
-//    }
-//
-//    return timestamp;
-//  }
-//
-//  public static ArrayList<WayGroup> getWayGroups(JSONObject input)
-//          throws JSONException
-//  {
-//    ArrayList <WayGroup> wayGroups = new ArrayList<>(Arrays.asList(new WayGroup[0]));
-//
-//    JSONArray routes = input.getJSONArray("routes");
-//
-//    for (int i = 0; i < routes.length(); i++)
-//    {
-//      try
-//      {
-//        JSONObject rawRoute = routes.getJSONObject(i);
-//        int type = rawRoute.getInt("type");
-//
-//        WayGroup group = new WayGroup(type);
-//
-//        JSONArray ways = rawRoute.getJSONArray("ways");
-//        for (int j = 0; j < ways.length(); j++)
-//        {
-//          JSONObject way = ways.getJSONObject(j);
-//          group.addWay( new Way(way) );
-//        }
-//
-//        wayGroups.add(group);
-//      }
-//      catch (JSONException err)
-//      {
-//        Log.e(LOG_TAG, "error", err);
-//      }
-//    }
-//
-//    return wayGroups;
-//  }
-//
-//  public static HashMap<String, StopInfo> extractStops(JSONObject input)
-//  {
-//    HashMap<String, StopInfo> out = new HashMap<String, StopInfo>();
-//    Iterator<String> stopIds = input.keys();
-//    while (stopIds.hasNext())
-//    {
-//      try
-//      {
-//        String _id = stopIds.next();
-//        JSONObject temp = input.getJSONObject(_id);
-//
-//        StopInfo stopInfo = new StopInfo(_id, Double.parseDouble(temp.getString("lat")), Double.parseDouble(temp.getString("lng")));
-//        if (temp.has("n"))
-//        {
-//          stopInfo.setName(temp.getString("n"));
-//        }
-//        if (temp.has("vehicles"))
-//        {
-//          Iterator<String> vehicles = temp.getJSONObject("vehicles").keys();
-//          while (vehicles.hasNext())
-//          {
-//            stopInfo.setBus(vehicles.next());
-//          }
-//        }
-//
-//        out.put(_id, stopInfo);
-//      }
-//      catch (JSONException err)
-//      {
-//        Log.e(LOG_TAG, "error", err);
-//      }
-//    }
-//
-//    return out;
-//  }
-//
-//  public static HashMap<String, HashSet<String>> extractBusStops(JSONObject input)
-//  {
-//    HashMap<String, HashSet<String>> out = new HashMap<String, HashSet<String>>();
-//    Iterator<String> vehicles = input.keys();
-//    while (vehicles.hasNext())
-//    {
-//      try
-//      {
-//        String _id = vehicles.next();
-//        JSONObject stopsHolder = input.getJSONObject(_id);
-//        HashSet<String> stop = new HashSet<String>();
-//        Iterator<String> stops = stopsHolder.keys();
-//        while (stops.hasNext())
-//        {
-//          String stopsCode = stops.next();
-//          stop.add(stopsCode);
-//        }
-//        out.put(_id, stop);
-//      }
-//      catch (JSONException err)
-//      {
-//        Log.e(LOG_TAG, "error", err);
-//      }
-//    }
-//
-//    return out;
-//  }
-//
-//  public static ArrayList<GeoPoint> parseRoutePoints(JSONArray points)
-//          throws JSONException
-//  {
-//    ArrayList<GeoPoint> out = new ArrayList<>(Arrays.asList(new GeoPoint[0]));
-//    for (int i = 0; i < points.length(); i++)
-//    {
-//      JSONObject point = points.getJSONObject(i);
-//      out.add(new GeoPoint(Double.parseDouble(point.getString("lat")), Double.parseDouble(point.getString("lng"))));
-//    }
-//    return out;
-//  }
+  private static String reduceGroupsList(JSONArray groups)
+  {
+    String out = "";
+    int len = groups.length();
+    try
+    {
+      for (int i = 0; i < len; i++)
+      {
+        out += groups.getString(i);
+        if (i < len - 1)
+        {
+          out += ", ";
+        }
+      }
+    }
+    catch (JSONException err)
+    {
+      Log.e(LOG_TAG, "parse groups array", err);
+    }
+    return out;
+  }
+
 }
 

@@ -15,12 +15,11 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 
 import com.venomyd.nopay.timetable.Config;
-import com.venomyd.nopay.timetable.DataModels.EventList;
+import com.venomyd.nopay.timetable.DataModels.Lesson;
 import com.venomyd.nopay.timetable.DataModels.ListItem;
 import com.venomyd.nopay.timetable.R;
 
@@ -37,7 +36,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by me on 26/02/17.
@@ -58,7 +56,7 @@ public class DataProvider extends Service
 
   private ArrayList<ListItem> history = null, searchList = null;
 
-  private HashMap<String, ArrayList<EventList>> resources = new HashMap<>();
+  private HashMap<String, ArrayList<Lesson>> resources = new HashMap<>();
   private HashMap<String, String> resourceTsp = new HashMap<>();
 
   private SharedPreferences pref;
@@ -161,7 +159,7 @@ public class DataProvider extends Service
             ListItem item = (ListItem) intent.getSerializableExtra("item");
             long tsp = 0;
             String fileName = "resource_" + item.id;
-            ArrayList<EventList> resource = null;
+            ArrayList<Lesson> resource = null;
 
             if (resources.containsValue(item.id))
             {
@@ -171,7 +169,7 @@ public class DataProvider extends Service
             else if (FileAPI.isFileExists(getBaseContext(), fileName))
             {
               String resourceStr = FileAPI.readFile(getBaseContext(), fileName);
-              resource = JSONParser.parceResource(resourceStr);
+              resource = JSONParser.parseResource(resourceStr, item.type);
               tsp = JSONParser.getLastUpdateTsp(resourceStr);
               resources.put(item.id, resource);
               resourceTsp.put(item.id, "" + tsp);
@@ -296,7 +294,7 @@ public class DataProvider extends Service
 
           if (response.length() > 0)
           {
-            ArrayList<EventList> resource = JSONParser.parceResource(response);
+            ArrayList<Lesson> resource = JSONParser.parseResource(response, item.type);
             long tsp = JSONParser.getLastUpdateTsp(response);
             resources.put(item.id, resource);
             resourceTsp.put(item.id, "" + tsp);
@@ -388,7 +386,7 @@ public class DataProvider extends Service
     return JSONParser.getSearchListTsp(listStr);
   }
 
-  private void sendResource(ArrayList<EventList> list, boolean forceUpdate)
+  private void sendResource(ArrayList<Lesson> list, boolean forceUpdate)
   {
     Intent intent = new Intent("timetable_table_activity");
     intent.putExtra("event", "resource");

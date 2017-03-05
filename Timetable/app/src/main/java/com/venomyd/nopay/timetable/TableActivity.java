@@ -5,27 +5,23 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.venomyd.nopay.timetable.Adapters.RowAdapter;
 import com.venomyd.nopay.timetable.Adapters.RowElement;
 import com.venomyd.nopay.timetable.Adapters.SearchElement;
-import com.venomyd.nopay.timetable.DataModels.EventList;
+import com.venomyd.nopay.timetable.DataModels.Lesson;
 import com.venomyd.nopay.timetable.DataModels.ListItem;
 import com.venomyd.nopay.timetable.Services.DataProvider;
-import com.venomyd.nopay.timetable.data.DbHelper;
-import com.venomyd.nopay.timetable.data.DbHelper.dataEntry;
 import com.venomyd.nopay.timetable.data.PeriodsService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 
 /**
  * Created by me on 25/08/16.
@@ -36,7 +32,8 @@ public class TableActivity extends AppCompatActivity
 
   private RowAdapter rowAdapter;
 
-  private ArrayList<RowElement> list = new ArrayList<RowElement>(Arrays.asList(new RowElement[0]));
+  private ArrayList<Lesson> data;
+  private ArrayList<Lesson> list = null;
 
   private ListView tableList;
 
@@ -58,35 +55,14 @@ public class TableActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_table);
 
+    ActionBar bar = getSupportActionBar();
+    bar.setDisplayHomeAsUpEnabled(false);
+
     item = (ListItem) getIntent().getSerializableExtra("data");
     requestData(item);
     setHeader(item.name);
 
-//    LinearLayout table = new LinearLayout(this);
-//
-//    element = (SearchElement) getIntent().getSerializableExtra("data");
-//
-//    ActionBar bar = getSupportActionBar();
-//    bar.setTitle(element.text);
-//    bar.setDisplayHomeAsUpEnabled(false);
-//
-//    rowAdapter = new RowAdapter(this, list);
-//
-//    tableList = (ListView) findViewById(R.id.table_list);
-//    tableList.setAdapter(rowAdapter);
-//
-//    for (int j = 0; j < daysLength * (1 + timesLength); j++)
-//    {
-//      int time = j % (1 + timesLength) - 1;
-//      items[j] =
-//        new RowElement (
-//          time,
-//          time == -1 ? PeriodsService.getDays()[j / (1 + timesLength)] : ""
-//        );
-//    }
-
-//    refreshList();
-
+    tableList = (ListView) findViewById(R.id.table_list);
   }
 
   @Override
@@ -103,8 +79,7 @@ public class TableActivity extends AppCompatActivity
           String eventType = intent.getStringExtra("event");
           if (eventType.equals("resource"))
           {
-            setTable((ArrayList<EventList>) intent.getSerializableExtra("list"));
-//            history = (ArrayList<ListItem> ) intent.getSerializableExtra("history");
+            setTable((ArrayList<Lesson>) intent.getSerializableExtra("list"));
           }
         }
       };
@@ -138,14 +113,62 @@ public class TableActivity extends AppCompatActivity
     bar.setTitle(name);
   }
 
-  private void setTable(ArrayList<EventList> data)
+  private void setTable(ArrayList<Lesson> _data)
   {
-    if (data != null)
+    if (_data != null)
     {
-      // rewrite RowAdapter to accept EventLists
-      // rowAdapter = new RowAdapter(this, data);
-      tableList = (ListView) findViewById(R.id.table_list);
-      // tableList.setAdapter(rowAdapter);
+      int day = (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) + 5
+              +1
+      ) % 7;
+      data = _data;
+      ArrayList<Lesson> newList = new ArrayList<>(Arrays.asList(new Lesson[0]));
+
+      if (list != null)
+      {
+        for (int oldListPointer = 0, newListPointer = 0;
+              oldListPointer < list.size() && newListPointer < _data.size(); oldListPointer++)
+        {
+          Lesson oldItem = list.get(oldListPointer);
+          newList.add(_data.get(newListPointer));
+          if (oldItem.position == -1 && !oldItem.open)
+          {
+            newListPointer += 8;
+          }
+          else
+          {
+            newListPointer++;
+          }
+        }
+      }
+      else
+      {
+        int listDay = -1;
+        for (int newListPointer = 0; newListPointer < _data.size(); )
+        {
+          Lesson _item = _data.get(newListPointer);
+          newList.add(_item);
+          if (_item.position == -1)
+          {
+            listDay++;
+            if (day != listDay)
+            {
+              newListPointer += 8;
+            }
+            else
+            {
+              newListPointer++;
+            }
+          }
+          else
+          {
+            newListPointer++;
+          }
+        }
+      }
+      list = newList;
+
+      rowAdapter = new RowAdapter(this, list);
+      tableList.setAdapter(rowAdapter);
       findViewById(R.id.loading_spinner).setVisibility(View.GONE);
     }
   }
@@ -162,57 +185,4 @@ public class TableActivity extends AppCompatActivity
     }
     return false;
   }
-//
-//  private void refreshList ()
-//  {
-//    ArrayList<RowElement> matching = new ArrayList<RowElement>(Arrays.asList(new RowElement[0]));
-//
-//    DbHelper mDbHelper = new DbHelper(this);
-//    SQLiteDatabase db = mDbHelper.getReadableDatabase();
-//
-//    String queryString;
-//
-//    if (element.type.equals("group") )
-//    {
-//      queryString =
-//        "SELECT " + dataEntry.TIME + ", " + dataEntry.NAME + ", " + dataEntry.PLACE + ", " + dataEntry.PERSON +
-//                ", " + dataEntry.DAY + ", " + dataEntry.POSITION +
-//        " FROM " + dataEntry.TABLE_NAME +
-//        " WHERE " + dataEntry.GROUP + " LIKE '" + element.text + "'" +
-//        " ORDER BY " + dataEntry.TIME + " ASC " +
-//        ";";
-//    }
-//    else
-//    {
-//      queryString =
-//            "SELECT " + dataEntry.TIME + ", " + dataEntry.NAME +", " + dataEntry.PLACE + ", " + dataEntry.GROUP +
-//                  ", " + dataEntry.DAY + ", " + dataEntry.POSITION +
-//            " FROM " + dataEntry.TABLE_NAME +
-//            " WHERE " + dataEntry.PERSON_ID + "='" + element.id + "'" +
-//            " ORDER BY " + dataEntry.TIME + " ASC, " + dataEntry.GROUP + " DESC" +
-//        ";";
-//    }
-//
-//    Cursor cursor = db.rawQuery(queryString, null);
-//
-//    while (cursor.moveToNext())
-//    {
-//      int timePointer = times.indexOf( cursor.getString(0) );
-//      // day * number of rows per day + time
-//      items[cursor.getInt(4) * (1 + timesLength) + timePointer + 1]
-//      .addElement(
-//          timePointer,
-//          cursor.getString(1),
-//          cursor.getString(2),
-//          cursor.getString(3),
-//          cursor.getInt(5)
-//        );
-//    }
-//
-//    list.addAll(
-//      new ArrayList<RowElement>(Arrays.asList(items))
-//    );
-//
-//    cursor.close();
-//  }
 }

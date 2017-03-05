@@ -38,7 +38,7 @@
                 android:orientation="horizontal"
                 >
                 <TextView
-                    android:id="@+id/odd_item_title"
+                    android:id="@+id/name1"
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
@@ -58,13 +58,13 @@
             </LinearLayout>
 
             <TextView
-                android:id="@+id/odd_item_content_place"
+                android:id="@+id/line21"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="left"
                 />
             <TextView
-                android:id="@+id/odd_item_content_person"
+                android:id="@+id/line31"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="left"
@@ -86,7 +86,7 @@
                 android:orientation="horizontal"
                 >
                 <TextView
-                    android:id="@+id/even_item_title"
+                    android:id="@+id/name2"
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
@@ -106,13 +106,13 @@
             </LinearLayout>
 
             <TextView
-                android:id="@+id/even_item_content_place"
+                android:id="@+id/line22"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="left"
                 />
             <TextView
-                android:id="@+id/even_item_content_person"
+                android:id="@+id/line32"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="left"

@@ -38,7 +38,7 @@
                 android:orientation="horizontal"
                 >
                 <TextView
-                    android:id="@+id/item_title"
+                    android:id="@+id/name"
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
@@ -58,13 +58,13 @@
             </LinearLayout>
 
             <TextView
-                android:id="@+id/item_content_place"
+                android:id="@+id/line2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="left"
                 />
             <TextView
-                android:id="@+id/item_content_person"
+                android:id="@+id/line3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="left"
