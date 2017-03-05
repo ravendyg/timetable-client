@@ -87,7 +87,7 @@ public class JSONParser
       for (int day = 1; day <= 7; day++)
       {
 //        int day = 1;
-        temp = new Lesson(-1, null, null, null, null);
+        temp = new Lesson(-1, null, (day - 1) * (Config.bells.length + 1), null, null, null);
         temp.dayName = Config.days[day - 1];
         out.add(temp);
         for (int bell = 0; bell < 7; bell++)
@@ -160,7 +160,8 @@ public class JSONParser
             }
             // if bells overloaded
           }
-          temp = new Lesson(_type, _items, _bell, _longBell1, _longBell2);
+          temp = new Lesson(_type, _items, (day - 1) * (Config.bells.length + 1) + bell + 1,
+                  _bell, _longBell1, _longBell2);
           out.add(temp);
         }
       }

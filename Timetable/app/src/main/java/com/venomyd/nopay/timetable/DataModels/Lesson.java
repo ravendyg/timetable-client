@@ -28,15 +28,17 @@ public class Lesson implements Serializable
 
   public String dayName = null;
   public boolean open = true;
+  public int counter;
 
   public Lesson(
 //          String _id,
-          int _type, ArrayList<LessonItem> _items,
+          int _type, ArrayList<LessonItem> _items, int _counter,
                 String _time, String _timeLine1, String _timeLine2)
   {
 //    id = _id;
     type = _type;
     items = _items;
+    counter = _counter;
     time = _time;
     timeLine1 = _timeLine1;
     timeLine2 = _timeLine2;

@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.venomyd.nopay.timetable.Adapters.RowAdapter;
@@ -63,6 +64,35 @@ public class TableActivity extends AppCompatActivity
     setHeader(item.name);
 
     tableList = (ListView) findViewById(R.id.table_list);
+
+    tableList.setOnItemClickListener(
+            new AdapterView.OnItemClickListener()
+            {
+              @Override
+              public void onItemClick (AdapterView<?> adapterView, View view, int position, long id)
+              {
+                Lesson element = rowAdapter.getElement(position);
+                if (element.open)
+                {
+                  element.open = false;
+                  for (int i = 0; i < Config.bells.length; i++)
+                  {
+                    list.remove(position + 1);
+                  }
+                }
+                else
+                {
+                  element.open = true;
+                  for (int i = Config.bells.length; i > 0 ; i--)
+                  {
+                    Lesson insert = data.get(element.counter + i);
+                    list.add(position + 1, insert);
+                  }
+                }
+                rowAdapter.notifyDataSetChanged();
+              }
+            }
+    );
   }
 
   @Override
@@ -143,13 +173,13 @@ public class TableActivity extends AppCompatActivity
         for (int newListPointer = 0; newListPointer < _data.size(); )
         {
           Lesson _item = _data.get(newListPointer);
-          newList.add(_item);
           if (_item.position == -1)
           {
             listDay++;
             if (day != listDay)
             {
               newListPointer += 8;
+              _item.open = false;
             }
             else
             {
@@ -160,6 +190,7 @@ public class TableActivity extends AppCompatActivity
           {
             newListPointer++;
           }
+          newList.add(_item);
         }
       }
       else if (!forceUpdate)
