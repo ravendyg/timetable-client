@@ -1,6 +1,6 @@
 ## NSU schedule of classes
 
-It is not an open source project per say - more like a course project in my attempt to learn native developing tools for Android.
+It is not an open source project per se - more like a course project in my attempt to learn native developing tools for Android.
 And I am going to take it myself as far as I can, but will be very happy about any feedback and will accept pull requests (as long as I can understand them).
 
 Link to current apk: https://www.dropbox.com/s/kxuhy8vbxtlnf5j/app-release.apk?dl=0
