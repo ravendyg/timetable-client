@@ -157,40 +157,7 @@ public class DataProvider extends Service
           else if (eventType.equals("data-request"))
           {
             ListItem item = (ListItem) intent.getSerializableExtra("item");
-            long tsp = 0;
-            String fileName = "resource_" + item.id;
-            ArrayList<Lesson> resource = null;
-
-            if (resources.containsValue(item.id))
-            {
-              resource = resources.get(item.id);
-              tsp = Long.parseLong(resourceTsp.get(item.id));
-            }
-            else if (FileAPI.isFileExists(getBaseContext(), fileName))
-            {
-              String resourceStr = FileAPI.readFile(getBaseContext(), fileName);
-              resource = JSONParser.parseResource(resourceStr, item.type);
-              tsp = JSONParser.getLastUpdateTsp(resourceStr);
-              resources.put(item.id, resource);
-              resourceTsp.put(item.id, "" + tsp);
-            }
-
-            if (resource != null)
-            {
-              sendResource(resource, false);
-            }
-            if (System.currentTimeMillis() - tsp > Config.updateValidFor)
-            {
-              if (isOnline())
-              {
-                updateResource(item, tsp);
-              }
-              else
-              {
-                itemsToUpdate.add(item);
-                itemsToUpdateTsp.add(tsp);
-              }
-            }
+            handleDataRequest(item);
           }
           else if (eventType.equals("new-history"))
           {
@@ -218,6 +185,44 @@ public class DataProvider extends Service
     if (networkStateReceiver != null)
     {
       unregisterReceiver(networkStateReceiver);
+    }
+  }
+
+  private void handleDataRequest(ListItem item)
+  {
+    long tsp = 0;
+    String fileName = "resource_" + item.id;
+    ArrayList<Lesson> resource = null;
+
+    if (resources.containsValue(item.id))
+    {
+      resource = resources.get(item.id);
+      tsp = Long.parseLong(resourceTsp.get(item.id));
+    }
+    else if (FileAPI.isFileExists(getBaseContext(), fileName))
+    {
+      String resourceStr = FileAPI.readFile(getBaseContext(), fileName);
+      resource = JSONParser.parseResource(resourceStr, item.type);
+      tsp = JSONParser.getLastUpdateTsp(resourceStr);
+      resources.put(item.id, resource);
+      resourceTsp.put(item.id, "" + tsp);
+    }
+
+    if (resource != null)
+    {
+      sendResource(item.id, resource, false);
+    }
+    if (System.currentTimeMillis() - tsp > Config.updateValidFor)
+    {
+      if (isOnline())
+      {
+        updateResource(item, tsp);
+      }
+      else
+      {
+        itemsToUpdate.add(item);
+        itemsToUpdateTsp.add(tsp);
+      }
     }
   }
 
@@ -298,7 +303,7 @@ public class DataProvider extends Service
             long tsp = JSONParser.getLastUpdateTsp(response);
             resources.put(item.id, resource);
             resourceTsp.put(item.id, "" + tsp);
-            sendResource(resource, true);
+            sendResource(item.id, resource, true);
 
             String filename = "resource_" + item.id;
             FileAPI.writeFile(getBaseContext(), filename, response);
@@ -342,6 +347,13 @@ public class DataProvider extends Service
     history = JSONParser.parseHistory(historyStr);
 
     sendHistory();
+
+    // preventive update check
+    for (int i = 0; i < history.size(); i++)
+    {
+      ListItem item = history.get(i);
+      handleDataRequest(item);
+    }
   }
 
   private void updateHistory(ArrayList<ListItem> _history)
@@ -386,10 +398,11 @@ public class DataProvider extends Service
     return JSONParser.getSearchListTsp(listStr);
   }
 
-  private void sendResource(ArrayList<Lesson> list, boolean forceUpdate)
+  private void sendResource(String id, ArrayList<Lesson> list, boolean forceUpdate)
   {
     Intent intent = new Intent("timetable_table_activity");
     intent.putExtra("event", "resource");
+    intent.putExtra("id", id);
     intent.putExtra("list", list);
     intent.putExtra("forceUpdate", forceUpdate);
     getBaseContext().sendBroadcast(intent);

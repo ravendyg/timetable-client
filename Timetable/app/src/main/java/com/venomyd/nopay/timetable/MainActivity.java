@@ -225,7 +225,10 @@ public class MainActivity extends AppCompatActivity
 
     if (input.length() == 0)
     { // show last searches
-      searchResult.addAll(history);
+      if (history != null)
+      {
+        searchResult.addAll(history);
+      }
     }
     else
     {

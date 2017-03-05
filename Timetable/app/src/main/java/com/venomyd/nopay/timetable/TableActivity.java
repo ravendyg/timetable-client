@@ -79,7 +79,11 @@ public class TableActivity extends AppCompatActivity
           String eventType = intent.getStringExtra("event");
           if (eventType.equals("resource"))
           {
-            setTable((ArrayList<Lesson>) intent.getSerializableExtra("list"));
+            String id = intent.getStringExtra("id");
+            if (item.id.equals(id))
+            {
+              setTable((ArrayList<Lesson>) intent.getSerializableExtra("list"), intent.getBooleanExtra("forceUpdate", false));
+            }
           }
         }
       };
@@ -99,6 +103,18 @@ public class TableActivity extends AppCompatActivity
     }
   }
 
+  @Override
+  public void onPause()
+  {
+    super.onPause();
+
+    Intent intent = new Intent("com.venomyd.nopay.timetable.data.service");
+    intent.putExtra("event", "activity-offline");
+    intent.putExtra("type", "table");
+    sendBroadcast(intent);
+    unregisterReceiver(mainReceiver);
+  }
+
   private void requestData(ListItem item)
   {
     Intent intent = new Intent("com.venomyd.nopay.timetable.data.service");
@@ -113,34 +129,15 @@ public class TableActivity extends AppCompatActivity
     bar.setTitle(name);
   }
 
-  private void setTable(ArrayList<Lesson> _data)
+  private void setTable(ArrayList<Lesson> _data, boolean forceUpdate)
   {
     if (_data != null)
     {
-      int day = (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) + 5
-              +1
-      ) % 7;
+      int day = (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) + 5) % 7;
       data = _data;
       ArrayList<Lesson> newList = new ArrayList<>(Arrays.asList(new Lesson[0]));
 
-      if (list != null)
-      {
-        for (int oldListPointer = 0, newListPointer = 0;
-              oldListPointer < list.size() && newListPointer < _data.size(); oldListPointer++)
-        {
-          Lesson oldItem = list.get(oldListPointer);
-          newList.add(_data.get(newListPointer));
-          if (oldItem.position == -1 && !oldItem.open)
-          {
-            newListPointer += 8;
-          }
-          else
-          {
-            newListPointer++;
-          }
-        }
-      }
-      else
+      if (list == null)
       {
         int listDay = -1;
         for (int newListPointer = 0; newListPointer < _data.size(); )
@@ -158,6 +155,27 @@ public class TableActivity extends AppCompatActivity
             {
               newListPointer++;
             }
+          }
+          else
+          {
+            newListPointer++;
+          }
+        }
+      }
+      else if (!forceUpdate)
+      {
+        return;
+      }
+      else
+      {
+        for (int oldListPointer = 0, newListPointer = 0;
+             oldListPointer < list.size() && newListPointer < _data.size(); oldListPointer++)
+        {
+          Lesson oldItem = list.get(oldListPointer);
+          newList.add(_data.get(newListPointer));
+          if (oldItem.position == -1 && !oldItem.open)
+          {
+            newListPointer += 8;
           }
           else
           {
