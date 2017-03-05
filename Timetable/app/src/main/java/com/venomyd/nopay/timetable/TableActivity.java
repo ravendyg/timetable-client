@@ -23,6 +23,7 @@ import com.venomyd.nopay.timetable.data.PeriodsService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import android.os.Handler;
 
 /**
  * Created by me on 25/08/16.
@@ -69,10 +70,16 @@ public class TableActivity extends AppCompatActivity
             new AdapterView.OnItemClickListener()
             {
               @Override
-              public void onItemClick (AdapterView<?> adapterView, View view, int position, long id)
+              public void onItemClick (AdapterView<?> adapterView, View view,
+                                       final int position, long id)
               {
                 Lesson element = rowAdapter.getElement(position);
-                if (element.open)
+                if (element.type != -1)
+                {
+                  // info
+                  // implement later
+                }
+                else if (element.open)
                 {
                   element.open = false;
                   for (int i = 0; i < Config.bells.length; i++)
@@ -88,6 +95,12 @@ public class TableActivity extends AppCompatActivity
                     Lesson insert = data.get(element.counter + i);
                     list.add(position + 1, insert);
                   }
+                  tableList.post(new Runnable() {
+                    @Override
+                    public void run() {
+                      tableList.smoothScrollToPositionFromTop(position, 0);
+                    }
+                  });
                 }
                 rowAdapter.notifyDataSetChanged();
               }
