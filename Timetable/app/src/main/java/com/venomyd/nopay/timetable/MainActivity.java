@@ -33,13 +33,8 @@ public class MainActivity extends AppCompatActivity
   private final String LOG_TAG = this.getClass().getSimpleName();
 
   private final int HISTORY_SIZE = 10;
-//
-//  private SearchAdapter adapter;
 
   private SearchAdapter searchAdapter;
-
-  private ArrayList<SearchElement> storage = new ArrayList<>(Arrays.asList(new SearchElement[0]));
-  private ArrayList<SearchElement> favorites = new ArrayList<SearchElement>(Arrays.asList(new SearchElement[0]));
 
   private ArrayList<ListItem> searchResult = new ArrayList<ListItem>(Arrays.asList(new ListItem[0]));
 
@@ -49,13 +44,13 @@ public class MainActivity extends AppCompatActivity
 
   private Button clearSearchInput;
 
-  private int refreshed = 0;
-
-  private int minFav = 0, maxFav = 0;
-
   private BroadcastReceiver mainReceiver;
 
   private ArrayList<ListItem> history = null, list = null;
+
+  private long searchListVersion = 0;
+
+  private boolean initialized = false;
 
 
 
@@ -111,21 +106,25 @@ public class MainActivity extends AppCompatActivity
   {
     if (history != null && list != null)
     {
-      findViewById(R.id.loading_message).setVisibility(View.GONE);
-      findViewById(R.id.loading_spinner).setVisibility(View.GONE);
-
-      findViewById(R.id.search_view).setVisibility(View.VISIBLE);
-
       TextView view = (TextView) findViewById(R.id.search_bar_auto);
 
-      filterSearchResults(view.getText().toString());
-
-      if (history.size() == 0)
+      if (!initialized)
       {
-        view.requestFocus();
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput( view, InputMethodManager.SHOW_IMPLICIT);
+        findViewById(R.id.loading_message).setVisibility(View.GONE);
+        findViewById(R.id.loading_spinner).setVisibility(View.GONE);
+        findViewById(R.id.search_view).setVisibility(View.VISIBLE);
+
+        initialized = true;
+
+        if (history.size() == 0)
+        {
+          view.requestFocus();
+          InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+          imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
+        }
       }
+
+      filterSearchResults(view.getText().toString());
     }
   }
 
@@ -148,7 +147,19 @@ public class MainActivity extends AppCompatActivity
           }
           else if (eventType.equals("searchList"))
           {
-            list = (ArrayList<ListItem> ) intent.getSerializableExtra("searchList");
+            long version = intent.getLongExtra("version", 0);
+            boolean forceUpdate = intent.getBooleanExtra("forceUpdate", false);
+            ArrayList<ListItem> chunck = (ArrayList<ListItem>) intent.getSerializableExtra("searchList");
+
+            if (list == null || (forceUpdate && searchListVersion != version))
+            {
+              list = chunck;
+              searchListVersion = version;
+            }
+            else
+            {
+              list.addAll(chunck);
+            }
             tryInit();
           }
         }
@@ -256,178 +267,6 @@ public class MainActivity extends AppCompatActivity
     }
     return false;
   }
-
-
-
-
-//
-//  private long getTimestamp ()
-//  {
-//    String queryString = "SELECT " + DbHelper.timeEntry.TIMESTAMP + " FROM " + DbHelper.timeEntry.TABLE_NAME +
-//      " WHERE " + DbHelper.timeEntry.COUNTER + " = " + 1 + ";";
-//
-//    Cursor cursor = db.rawQuery(queryString, null);
-//
-//    long output;
-//    if (cursor.getCount() > 0)
-//    {
-//      cursor.moveToFirst();
-//      output = cursor.getLong(0);
-//    }
-//    else
-//    {
-//      output = 0;
-//    }
-//    cursor.close();
-//
-//    return output;
-//  }
-//
-//  private void setTimestamp (long now)
-//  {
-//    ContentValues values = new ContentValues();
-//    values.put(DbHelper.timeEntry.COUNTER, 1);
-//    values.put(DbHelper.timeEntry.TIMESTAMP, now);
-//
-//    db.insert(DbHelper.timeEntry.TABLE_NAME, null, values);
-//  }
-//
-//  private long storeChanges (EventElement [] data, String type)
-//  {
-//    // connect to location db in write mode
-//    DbHelper mDbHelper = new DbHelper(this);
-//    SQLiteDatabase db = mDbHelper.getWritableDatabase();
-//
-//    long newTimestamp = -1;
-//
-//    if (data.length == 0)
-//    {
-//      return newTimestamp;
-//    }
-//
-//    db.beginTransaction();
-//
-//    try
-//    {
-//      if ( type.equals("new") )
-//      { // remove all previous data
-//        db.delete(dataEntry.TABLE_NAME, null, null);
-//        db.delete(personEntry.TABLE_NAME, null, null);
-//        db.delete(groupEntry.TABLE_NAME, null, null);
-//      }
-//
-//      for (int k = 0; k < data.length; k++)
-//      {
-//        try
-//        {
-//          if (data[k].status == 1)
-//          {
-//            insertNewEvent(db, data[k]);
-//            insertNewGroup(db, data[k]);
-//            insertNewPerson(db, data[k]);
-//          }
-//          else
-//          {
-//            db.delete(
-//              dataEntry.TABLE_NAME,
-//              dataEntry.TIME + "=? AND " + dataEntry.DAY + "=? AND " + dataEntry.GROUP + "=?",
-//              new String[] {data[k].time, ""+data[k].day, data[k].group}
-//            );
-//          }
-//
-//          if ( data[k].timestamp > newTimestamp )
-//          {
-//            newTimestamp = data[k].timestamp;
-//          }
-//        }
-//        catch (Exception e)
-//        {
-//          Log.e(tag, "inserting event into db", e);
-//        }
-//      }
-//      db.setTransactionSuccessful();
-//    }
-//    catch (Exception e)
-//    {
-//      Log.e("general insert", "", e);
-//    }
-//    finally
-//    {
-//      db.endTransaction();
-//    }
-//
-//    return newTimestamp;
-//  }
-//
-//  private void insertNewEvent (SQLiteDatabase db, EventElement data)
-//  {
-//    ContentValues event = new ContentValues();
-//    event.put(dataEntry.TIME, data.time);
-//    event.put(dataEntry.DAY, data.day);
-//    event.put(dataEntry.PLACE, data.place);
-//    event.put(dataEntry.NAME, data.name);
-//    event.put(dataEntry.GROUP, data.group);
-//    event.put(dataEntry.PERSON, data.person);
-//    event.put(dataEntry.PERSON_ID, data.personId);
-//    event.put(dataEntry.FULL_NAME, data.fullName);
-//    event.put(dataEntry.POSITION, data.position);
-//    event.put(dataEntry.STATUS, data.status);
-//    event.put(dataEntry.TIMESTAMP, data.timestamp);
-//
-//    db.insertWithOnConflict(dataEntry.TABLE_NAME, null, event,  SQLiteDatabase.CONFLICT_REPLACE);
-//  }
-//
-//  private void insertNewPerson (SQLiteDatabase db, EventElement data)
-//  {
-//    String queryString =
-//      "SELECT * FROM " + personEntry.TABLE_NAME + " WHERE " + personEntry.PERSON_ID + "=" + data.personId + ";";
-//    Cursor cursor = db.rawQuery(queryString, null);
-//
-//    int fav = 0;
-//    boolean replace = true;
-//
-//    if ( cursor.getCount() > 0 )
-//    {
-//      cursor.moveToFirst();
-//      int id = cursor.getInt(0);
-//      String name = cursor.getString(1);
-//      fav = cursor.getInt(2);
-//
-//      if ( !name.equals(data.fullName) )
-//      {
-//        replace = false;
-//      }
-//    }
-//
-//    cursor.close();
-//
-//    if ( replace )
-//    {
-//      ContentValues person = new ContentValues();
-//      person.put(personEntry.PERSON_ID, data.personId);
-//      person.put(personEntry.FULL_NAME, data.fullName);
-//      person.put(personEntry.FAVORITE, fav);
-//
-//      db.insertWithOnConflict(DbHelper.personEntry.TABLE_NAME, null, person, SQLiteDatabase.CONFLICT_REPLACE);
-//    }
-//  }
-//
-//  private void insertNewGroup (SQLiteDatabase db, EventElement data)
-//  {
-//    String queryString =
-//            "SELECT * FROM " + groupEntry.TABLE_NAME + " WHERE " + groupEntry.NAME + "='" + data.group + "';";
-//    Cursor cursor = db.rawQuery(queryString, null);
-//
-//    if ( cursor.getCount() == 0 )
-//    {
-//      ContentValues group = new ContentValues();
-//      group.put(groupEntry.NAME, data.group);
-//
-//      db.insertWithOnConflict(groupEntry.TABLE_NAME, null, group, SQLiteDatabase.CONFLICT_REPLACE);
-//    }
-//
-//    cursor.close();
-//  }
 }
 
 

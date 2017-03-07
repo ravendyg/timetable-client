@@ -46,6 +46,7 @@ public class DataProvider extends Service
   private static final String LOG_TAG = "Timetable data service";
   private static final long LIVE_WITHOUT_ACTIVITY = 1000 * 60 * 5;
   private static final long SYNC_VALID_FOR = 1000 * 60 * 60 * 6;
+  private static final int SEARCH_LIST_CHUNK_SIZE = 500;
 
   private String apiKey;
   private int activityCount = 0;
@@ -125,6 +126,10 @@ public class DataProvider extends Service
         public void onReceive(Context context, Intent intent)
         {
           String eventType = intent.getStringExtra("event");
+          if (eventType != null)
+          {
+            return;
+          }
           if (eventType.equals("activity-offline"))
           {
             activityCount--;
@@ -144,7 +149,8 @@ public class DataProvider extends Service
             // if activity connected to already running service, provide it with data
             if (dataLoaded)
             {
-              if (intent.getStringExtra("type").equals("main"))
+              String type = intent.getStringExtra("type");
+              if (type != null && type.equals("main"))
               {
                 sendDataToMain();
               }
@@ -190,6 +196,10 @@ public class DataProvider extends Service
 
   private void handleDataRequest(ListItem item)
   {
+    if (item == null)
+    {
+      return;
+    }
     long tsp = 0;
     String fileName = "resource_" + item.id;
     ArrayList<Lesson> resource = null;
@@ -393,7 +403,7 @@ public class DataProvider extends Service
     }
 
     searchList = JSONParser.parseSearchList(listStr);
-    sendSearchList();
+    sendSearchList(false);
 
     return JSONParser.getSearchListTsp(listStr);
   }
@@ -416,12 +426,23 @@ public class DataProvider extends Service
     getBaseContext().sendBroadcast(intent);
   }
 
-  private void sendSearchList()
+  private void sendSearchList(boolean forceUpdate)
   {
-    Intent intent = new Intent("timetable_main_activity");
-    intent.putExtra("event", "searchList");
-    intent.putExtra("searchList", searchList);
-    getBaseContext().sendBroadcast(intent);
+    if (searchList != null)
+    {
+      int size = searchList.size();
+      long version = Math.round(Math.random() * 1000);
+      for (int i = 0; i < size; i += SEARCH_LIST_CHUNK_SIZE)
+      {
+        Intent intent = new Intent("timetable_main_activity");
+        intent.putExtra("event", "searchList");
+        intent.putExtra("version", version);
+        intent.putExtra("forceUpdate", forceUpdate);
+        intent.putExtra("searchList",
+          new ArrayList<ListItem>(searchList.subList(i, Math.min(i + SEARCH_LIST_CHUNK_SIZE, size - 1))));
+        getBaseContext().sendBroadcast(intent);
+      }
+    }
   }
 
   private void sendDataToMain()
@@ -449,7 +470,7 @@ public class DataProvider extends Service
         {
           dataLoaded = true;
           searchList = JSONParser.parseSearchList(syncWebStr);
-          sendSearchList();
+          sendSearchList(true);
 
           FileAPI.writeFile(getBaseContext(), "list", syncWebStr);
 
