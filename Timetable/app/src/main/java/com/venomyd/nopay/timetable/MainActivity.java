@@ -18,14 +18,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.venomyd.nopay.timetable.Adapters.SearchAdapter;
-import com.venomyd.nopay.timetable.Adapters.SearchElement;
 import com.venomyd.nopay.timetable.DataModels.ListItem;
 import com.venomyd.nopay.timetable.Services.DataProvider;
 
-
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 
 
 public class MainActivity extends AppCompatActivity

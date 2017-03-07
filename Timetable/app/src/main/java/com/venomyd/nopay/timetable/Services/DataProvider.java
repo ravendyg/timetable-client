@@ -126,7 +126,7 @@ public class DataProvider extends Service
         public void onReceive(Context context, Intent intent)
         {
           String eventType = intent.getStringExtra("event");
-          if (eventType != null)
+          if (eventType == null)
           {
             return;
           }
