@@ -37,11 +37,11 @@ public class MainActivity extends AppCompatActivity
   private final int HISTORY_SIZE = 10;
 
   private SearchAdapter searchAdapter;
-  private ArrayAdapter _searchAdapter;
+  private ArrayAdapter _searchAdapter = null;
 
   private ArrayList<ListItem> searchResult = new ArrayList<ListItem>(Arrays.asList(new ListItem[0]));
   private ArrayList<String> _names;
-  private ArrayList<String> _history;
+  private ArrayList<String> _history = null;
   private ArrayList<String> _searchResult = new ArrayList<>(Arrays.asList(new String[0]));
   private HashMap<String, ListItem> namesToIds = new HashMap<>();;
   private HashMap<String, ArrayList<String>> searchHistory;
@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity
 
   private EditText searchInput;
   private String searchQuery = "";
-  private Button clearSearchInput;
+  private Button clearSearchInputBtn;
 
   private BroadcastReceiver mainReceiver;
 
@@ -69,11 +69,13 @@ public class MainActivity extends AppCompatActivity
   {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-//    searchAdapter = new SearchAdapter(this, searchResult);
     _searchAdapter = new ArrayAdapter(this, R.layout.search_item, _searchResult);
     searchList = (ListView) this.findViewById(R.id.list_view);
     searchList.setAdapter(_searchAdapter);
     spinner = (ProgressBar) findViewById(R.id.loading_spinner);
+    searchInput = (EditText) findViewById(R.id.search_bar_auto);
+    clearSearchInputBtn = (Button) findViewById(R.id.clear_search);
+
     searchList.setOnItemClickListener(
         new AdapterView.OnItemClickListener()
         {
@@ -92,8 +94,6 @@ public class MainActivity extends AppCompatActivity
         }
     );
 
-    searchInput = (EditText) findViewById(R.id.search_bar_auto);
-
     searchInput.addTextChangedListener(
       new TextWatcher()
       {
@@ -106,12 +106,16 @@ public class MainActivity extends AppCompatActivity
         @Override
         public void afterTextChanged(Editable editable)
         {
+          if (editable.toString().length() == 0)
+          {
+            clearSearchInputBtn.setVisibility(View.GONE);
+          }
           startFilterSearchResults(editable.toString());
         }
       }
     );
 
-    clearSearchInput = (Button) findViewById(R.id.clear_search);
+
   }
 
   public void tryInit()
@@ -133,9 +137,9 @@ public class MainActivity extends AppCompatActivity
           InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
           imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
         }
-      }
 
-      startFilterSearchResults(view.getText().toString());
+        startFilterSearchResults(view.getText().toString());
+      }
     }
   }
 
@@ -143,6 +147,17 @@ public class MainActivity extends AppCompatActivity
   public void onResume ()
   {
     super.onResume();
+
+    if (_history != null && _searchAdapter != null && searchInput.getText().toString().length() == 0)
+    {
+      _searchResult.clear();
+      Iterator<String> _items = _history.iterator();
+      while (_items.hasNext())
+      {
+        _searchResult.add(_items.next());
+      }
+      _searchAdapter.notifyDataSetChanged();
+    }
     if (mainReceiver == null)
     {
       mainReceiver = new BroadcastReceiver()
@@ -151,7 +166,7 @@ public class MainActivity extends AppCompatActivity
         public void onReceive(Context context, Intent intent)
         {
           String eventType = intent.getStringExtra("event");
-          if (eventType.equals("history"))
+          if (history == null && eventType.equals("history"))
           {
             history = (ArrayList<ListItem> ) intent.getSerializableExtra("history");
             _history = new ArrayList<>(Arrays.asList(new String[0]));
@@ -216,10 +231,11 @@ public class MainActivity extends AppCompatActivity
     unregisterReceiver(mainReceiver);
   }
 
-  public void clearSearchInput (View btn)
+  public void clearSearchInput(View view)
   {
     searchInput.setText("");
-    btn.setVisibility(View.GONE);
+    clearSearchInputBtn.setVisibility(View.GONE);
+    startFilterSearchResults("");
   }
 
   public void updateHistory(ListItem el)
@@ -264,9 +280,21 @@ public class MainActivity extends AppCompatActivity
 
   private void startFilterSearchResults(final String input)
   {
-    searchList.setVisibility(View.GONE);
-    this.findViewById(R.id.loading_spinner).setVisibility(View.VISIBLE);
-    filterSearchResults(input);
+    if (input.length() == 0)
+    { // show last searches
+      if (history != null && history.size() != _searchResult.size())
+      {
+        _searchResult.clear();
+        _searchResult.addAll(_history);
+        _searchAdapter.notifyDataSetChanged();
+      }
+    }
+    else
+    {
+      searchList.setVisibility(View.GONE);
+      spinner.setVisibility(View.VISIBLE);
+      filterSearchResults(input);
+    }
   }
 
   private void filterSearchResults(final String input)
@@ -278,42 +306,32 @@ public class MainActivity extends AppCompatActivity
       {
         _searchResult.clear();
 
-        if (input.length() == 0)
-        { // show last searches
-          if (history != null)
-          {
-            _searchResult.addAll(_history);
-          }
+        if (searchHistory.containsKey(input))
+        {
+          _searchResult.addAll(searchHistory.get(input));
         }
         else
         {
-          if (searchHistory.containsKey(input))
+          String temp = input;
+          while (temp.length() > 0)
           {
-            _searchResult.addAll(searchHistory.get(input));
+            if (searchHistory.containsKey(temp))
+            {
+              break;
+            }
+            temp = temp.substring(0, temp.length() - 1);
           }
-          else
+          ArrayList<String> tempList = searchHistory.get(temp);
+          ArrayList<String> narrowerList = new ArrayList<>(Arrays.asList(new String[0]));
+          for (String el : tempList)
           {
-            String temp = input;
-            while (temp.length() > 0)
+            if (el.toLowerCase().matches("(.*)" + input.toLowerCase() + "(.*)"))
             {
-              if (searchHistory.containsKey(temp))
-              {
-                break;
-              }
-              temp = temp.substring(0, temp.length() - 1);
+              narrowerList.add(el);
             }
-            ArrayList<String> tempList = searchHistory.get(temp);
-            ArrayList<String> narrowerList = new ArrayList<>(Arrays.asList(new String[0]));
-            for (String el : tempList)
-            {
-              if (el.toLowerCase().matches("(.*)" + input.toLowerCase() + "(.*)"))
-              {
-                narrowerList.add(el);
-              }
-            }
-            searchHistory.put(input, narrowerList);
-            _searchResult.addAll(narrowerList);
           }
+          searchHistory.put(input, narrowerList);
+          _searchResult.addAll(narrowerList);
         }
 
         String newInput = searchInput.getText().toString();
@@ -326,11 +344,11 @@ public class MainActivity extends AppCompatActivity
             {
               if (input.length() > 0)
               {
-                clearSearchInput.setVisibility(View.VISIBLE);
+                clearSearchInputBtn.setVisibility(View.VISIBLE);
               }
               else
               {
-                clearSearchInput.setVisibility(View.GONE);
+                clearSearchInputBtn.setVisibility(View.GONE);
               }
               _searchAdapter.notifyDataSetChanged();
               searchList.setVisibility(View.VISIBLE);

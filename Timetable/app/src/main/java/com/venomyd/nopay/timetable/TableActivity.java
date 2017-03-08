@@ -174,9 +174,10 @@ public class TableActivity extends AppCompatActivity
 
   private void setTable(ArrayList<Lesson> _data, boolean forceUpdate)
   {
+    final int day = (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) + 5) % 7;
+
     if (_data != null)
     {
-      int day = (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) + 5) % 7;
       data = _data;
       ArrayList<Lesson> newList = new ArrayList<>(Arrays.asList(new Lesson[0]));
 
@@ -232,6 +233,13 @@ public class TableActivity extends AppCompatActivity
       rowAdapter = new RowAdapter(this, list);
       tableList.setAdapter(rowAdapter);
       findViewById(R.id.loading_spinner).setVisibility(View.GONE);
+
+      tableList.post(new Runnable() {
+        @Override
+        public void run() {
+          tableList.smoothScrollToPositionFromTop(day, 0);
+        }
+      });
     }
   }
 
