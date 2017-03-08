@@ -13,6 +13,9 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Objects;
@@ -104,7 +107,7 @@ public class JSONParser
             JSONArray ev = events.getJSONArray(day + "|" + bell);
             for (int j = 0; j < 3; j++)
             {
-              if (ev.isNull(j))
+              if (ev.isNull(j) || ev.getString(j).equals("[]"))
               {
                 _items.add(null);
               }
@@ -222,6 +225,8 @@ public class JSONParser
           String name = _temp.getJSONObject(i).getString("name");
           searchList.add(new ListItem(id, name, "teachers"));
         }
+
+        Log.e(LOG_TAG, "sorted");
       }
       catch (JSONException err)
       {

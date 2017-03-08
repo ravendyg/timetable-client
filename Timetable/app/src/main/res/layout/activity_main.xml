@@ -7,24 +7,13 @@
     android:layout_height="match_parent"
     tools:context="com.venomyd.nopay.timetable.MainActivity">
 
-    <TextView
-        android:id="@+id/loading_message"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:textSize="20sp"
-        android:gravity="center"
-        android:text="@string/loading_message"
-    />
-
     <ProgressBar
         android:id="@+id/loading_spinner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@id/loading_message"
-        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:layout_marginTop="70dp"
+        android:gravity="center"
         android:indeterminate="true"
     />
 
