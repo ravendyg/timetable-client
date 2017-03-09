@@ -207,22 +207,24 @@ public class JSONParser
         JSONArray temp = rawList.getJSONArray("groups");
         for (int i = 0; i < temp.length(); i++ )
         {
-          String tempItem = temp.getString(i);
-          searchList.add(new ListItem(tempItem, tempItem, "groups"));
+          String id = temp.getJSONObject(i).getString("groupId");
+          String name = temp.getJSONObject(i).getString("name");
+          searchList.add(new ListItem(id, name, "groups"));
         }
 
         temp = rawList.getJSONArray("places");
         for (int i = 0; i < temp.length(); i++ )
         {
-          String tempItem = temp.getString(i);
-          searchList.add(new ListItem(tempItem, tempItem, "places"));
+          String id = temp.getJSONObject(i).getString("placeId");
+          String name = temp.getJSONObject(i).getString("name");
+          searchList.add(new ListItem(id, name, "places"));
         }
 
-        JSONArray _temp = rawList.getJSONArray("teachers");
-        for (int i = 0; i < _temp.length(); i++ )
+        temp = rawList.getJSONArray("teachers");
+        for (int i = 0; i < temp.length(); i++ )
         {
-          String id = _temp.getJSONObject(i).getString("teacherId");
-          String name = _temp.getJSONObject(i).getString("name");
+          String id = temp.getJSONObject(i).getString("teacherId");
+          String name = temp.getJSONObject(i).getString("name");
           searchList.add(new ListItem(id, name, "teachers"));
         }
 
