@@ -198,6 +198,7 @@ public class TableActivity extends AppCompatActivity
             else
             {
               newListPointer++;
+              _item.open = true;
             }
           }
           else
