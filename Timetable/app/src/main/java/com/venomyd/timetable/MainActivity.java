@@ -1,4 +1,4 @@
-package com.venomyd.nopay.timetable;
+package com.venomyd.timetable;
 
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -20,9 +21,9 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.venomyd.nopay.timetable.Adapters.SearchAdapter;
-import com.venomyd.nopay.timetable.DataModels.ListItem;
-import com.venomyd.nopay.timetable.Services.DataProvider;
+import com.venomyd.timetable.Adapters.SearchAdapter;
+import com.venomyd.timetable.DataModels.ListItem;
+import com.venomyd.timetable.Services.DataProvider;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -213,8 +214,9 @@ public class MainActivity extends AppCompatActivity
     }
     else
     {
-      Intent intent = new Intent("com.venomyd.nopay.timetable.data.service");
+      Intent intent = new Intent("com.venomyd.timetable.data.service");
       intent.putExtra("event", "activity-online");
+      intent.putExtra("type", "main");
       sendBroadcast(intent);
     }
   }
@@ -224,7 +226,7 @@ public class MainActivity extends AppCompatActivity
   {
     super.onPause();
 
-    Intent intent = new Intent("com.venomyd.nopay.timetable.data.service");
+    Intent intent = new Intent("com.venomyd.timetable.data.service");
     intent.putExtra("event", "activity-offline");
     intent.putExtra("type", "main");
     sendBroadcast(intent);
@@ -271,7 +273,7 @@ public class MainActivity extends AppCompatActivity
       _history.add(temp.name);
     }
 
-    Intent intent = new Intent("com.venomyd.nopay.timetable.data.service");
+    Intent intent = new Intent("com.venomyd.timetable.data.service");
     intent.putExtra("event", "new-history");
     intent.putExtra("history", history);
     sendBroadcast(intent);

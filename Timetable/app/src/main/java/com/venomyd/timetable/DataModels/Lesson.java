@@ -1,4 +1,4 @@
-package com.venomyd.nopay.timetable.DataModels;
+package com.venomyd.timetable.DataModels;
 
 import java.io.Serializable;
 import java.util.ArrayList;

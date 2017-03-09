@@ -1,4 +1,4 @@
-package com.venomyd.nopay.timetable.Services;
+package com.venomyd.timetable.Services;
 
 import android.Manifest;
 import android.app.Service;
@@ -18,10 +18,10 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 
-import com.venomyd.nopay.timetable.Config;
-import com.venomyd.nopay.timetable.DataModels.Lesson;
-import com.venomyd.nopay.timetable.DataModels.ListItem;
-import com.venomyd.nopay.timetable.R;
+import com.venomyd.timetable.Config;
+import com.venomyd.timetable.DataModels.Lesson;
+import com.venomyd.timetable.DataModels.ListItem;
+import com.venomyd.timetable.R;
 
 
 import java.io.BufferedReader;
@@ -172,12 +172,11 @@ public class DataProvider extends Service
         }
       };
     }
-    registerReceiver(mainReceiver, new IntentFilter("com.venomyd.nopay.timetable.data.service"));
+    registerReceiver(mainReceiver, new IntentFilter("com.venomyd.timetable.data.service"));
   }
 
   public IBinder onBind(Intent intent)
   {
-    Log.e(LOG_TAG, "onBind");
     return new Binder();
   }
 
@@ -452,6 +451,7 @@ public class DataProvider extends Service
   private void sendDataToMain()
   {
     sendHistory();
+    sendSearchList(false);
   }
 
   private void syncSearchList()

@@ -1,4 +1,4 @@
-package com.venomyd.nopay.timetable.Adapters;
+package com.venomyd.timetable.Adapters;
 
 /**
  * Created by me on 25/08/16.

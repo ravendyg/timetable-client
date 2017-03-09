@@ -1,4 +1,4 @@
-package com.venomyd.nopay.timetable.Adapters;
+package com.venomyd.timetable.Adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -7,10 +7,10 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.venomyd.nopay.timetable.DataModels.Lesson;
-import com.venomyd.nopay.timetable.DataModels.LessonItem;
-import com.venomyd.nopay.timetable.R;
-import com.venomyd.nopay.timetable.data.PeriodsService;
+import com.venomyd.timetable.DataModels.Lesson;
+import com.venomyd.timetable.DataModels.LessonItem;
+import com.venomyd.timetable.R;
+import com.venomyd.timetable.data.PeriodsService;
 
 import java.util.ArrayList;
 

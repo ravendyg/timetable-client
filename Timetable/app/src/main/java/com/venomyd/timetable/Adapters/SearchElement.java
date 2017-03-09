@@ -1,4 +1,4 @@
-package com.venomyd.nopay.timetable.Adapters;
+package com.venomyd.timetable.Adapters;
 
 import java.io.Serializable;
 import java.util.Comparator;

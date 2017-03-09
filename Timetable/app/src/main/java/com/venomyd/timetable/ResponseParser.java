@@ -1,8 +1,8 @@
-package com.venomyd.nopay.timetable;
+package com.venomyd.timetable;
 
 import android.util.Log;
 
-import com.venomyd.nopay.timetable.Adapters.EventElement;
+import com.venomyd.timetable.Adapters.EventElement;
 
 import org.json.JSONArray;
 import org.json.JSONException;

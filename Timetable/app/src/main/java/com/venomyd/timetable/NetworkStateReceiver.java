@@ -1,4 +1,4 @@
-package com.venomyd.nopay.timetable;
+package com.venomyd.timetable;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

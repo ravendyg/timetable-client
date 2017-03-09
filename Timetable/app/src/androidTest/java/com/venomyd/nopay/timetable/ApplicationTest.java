@@ -1,4 +1,4 @@
-package com.venomyd.nopay.timetable;
+package com.venomyd.timetable;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

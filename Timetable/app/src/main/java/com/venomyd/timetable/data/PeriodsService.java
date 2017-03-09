@@ -1,4 +1,4 @@
-package com.venomyd.nopay.timetable.data;
+package com.venomyd.timetable.data;
 
 /**
  * Created by me on 27/08/16.

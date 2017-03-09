@@ -1,4 +1,4 @@
-package com.venomyd.nopay.timetable.Services;
+package com.venomyd.timetable.Services;
 
 import android.content.Context;
 

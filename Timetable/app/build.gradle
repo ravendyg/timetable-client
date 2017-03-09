@@ -5,11 +5,11 @@ android {
     buildToolsVersion "24.0.0"
 
     defaultConfig {
-        applicationId "com.venomyd.nopay.timetable"
+        applicationId "com.venomyd.timetable"
         minSdkVersion 15
         targetSdkVersion 24
-        versionCode 3
-        versionName "1.1.1"
+        versionCode 4
+        versionName "1.2.1"
     }
     buildTypes {
         release {

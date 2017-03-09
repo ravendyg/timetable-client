@@ -1,11 +1,11 @@
-package com.venomyd.nopay.timetable.Services;
+package com.venomyd.timetable.Services;
 
 import android.util.Log;
 
-import com.venomyd.nopay.timetable.Config;
-import com.venomyd.nopay.timetable.DataModels.Lesson;
-import com.venomyd.nopay.timetable.DataModels.LessonItem;
-import com.venomyd.nopay.timetable.DataModels.ListItem;
+import com.venomyd.timetable.Config;
+import com.venomyd.timetable.DataModels.Lesson;
+import com.venomyd.timetable.DataModels.LessonItem;
+import com.venomyd.timetable.DataModels.ListItem;
 
 import org.json.JSONArray;
 import org.json.JSONException;

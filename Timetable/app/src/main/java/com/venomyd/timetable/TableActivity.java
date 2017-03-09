@@ -1,4 +1,4 @@
-package com.venomyd.nopay.timetable;
+package com.venomyd.timetable;
 
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
@@ -12,13 +12,13 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.venomyd.nopay.timetable.Adapters.RowAdapter;
-import com.venomyd.nopay.timetable.Adapters.RowElement;
-import com.venomyd.nopay.timetable.Adapters.SearchElement;
-import com.venomyd.nopay.timetable.DataModels.Lesson;
-import com.venomyd.nopay.timetable.DataModels.ListItem;
-import com.venomyd.nopay.timetable.Services.DataProvider;
-import com.venomyd.nopay.timetable.data.PeriodsService;
+import com.venomyd.timetable.Adapters.RowAdapter;
+import com.venomyd.timetable.Adapters.RowElement;
+import com.venomyd.timetable.Adapters.SearchElement;
+import com.venomyd.timetable.DataModels.Lesson;
+import com.venomyd.timetable.DataModels.ListItem;
+import com.venomyd.timetable.Services.DataProvider;
+import com.venomyd.timetable.data.PeriodsService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -139,7 +139,7 @@ public class TableActivity extends AppCompatActivity
     }
     else
     {
-      Intent intent = new Intent("com.venomyd.nopay.timetable.data.service");
+      Intent intent = new Intent("com.venomyd.timetable.data.service");
       intent.putExtra("event", "activity-online");
       intent.putExtra("type", "table");
       sendBroadcast(intent);
@@ -151,7 +151,7 @@ public class TableActivity extends AppCompatActivity
   {
     super.onPause();
 
-    Intent intent = new Intent("com.venomyd.nopay.timetable.data.service");
+    Intent intent = new Intent("com.venomyd.timetable.data.service");
     intent.putExtra("event", "activity-offline");
     intent.putExtra("type", "table");
     sendBroadcast(intent);
@@ -160,7 +160,7 @@ public class TableActivity extends AppCompatActivity
 
   private void requestData(ListItem item)
   {
-    Intent intent = new Intent("com.venomyd.nopay.timetable.data.service");
+    Intent intent = new Intent("com.venomyd.timetable.data.service");
     intent.putExtra("event", "data-request");
     intent.putExtra("item", item);
     sendBroadcast(intent);
