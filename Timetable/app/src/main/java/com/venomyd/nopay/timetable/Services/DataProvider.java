@@ -391,6 +391,10 @@ public class DataProvider extends Service
     {
       waitSearchListUpdate = true;
     }
+    else
+    {
+      dataLoaded = true;
+    }
   }
 
   private long loadSearchListFromDisk()

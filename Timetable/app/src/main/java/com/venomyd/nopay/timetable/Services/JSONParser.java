@@ -259,7 +259,7 @@ public class JSONParser
 
   private static String reduceGroupsList(JSONArray groups)
   {
-    HashMap<String , String> gr = new HashMap<>();
+    HashMap<String, String> gr = new HashMap<>();
     String out = "";
     int len = groups.length();
     try
@@ -279,10 +279,26 @@ public class JSONParser
         gr.put(key, raw);
       }
       Iterator<String> it = gr.values().iterator();
+      ArrayList<String> values = new ArrayList<>(Arrays.asList(new String[0]));
+
       while (it.hasNext())
       {
+        values.add(it.next());
+      }
+
+      Collections.sort(values, new Comparator<String>()
+      {
+        @Override
+        public int compare(String s1, String s2)
+        {
+          return s1.compareTo(s2);
+        }
+      });
+
+      for (String el: values)
+      {
         len--;
-        out += it.next();
+        out += el;
         if (len > 0)
         {
           out += ", ";
@@ -293,8 +309,8 @@ public class JSONParser
     {
       Log.e(LOG_TAG, "parse groups array", err);
     }
+
     return out;
   }
-
 }
 

@@ -27,7 +27,7 @@ public class Lesson implements Serializable
   public String timeLine2;
 
   public String dayName = null;
-  public boolean open = true;
+  public boolean open = false;
   public int counter;
 
   public Lesson(

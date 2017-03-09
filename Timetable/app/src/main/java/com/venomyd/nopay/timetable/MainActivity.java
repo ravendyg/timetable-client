@@ -304,11 +304,14 @@ public class MainActivity extends AppCompatActivity
       @Override
       public void run()
       {
-        _searchResult.clear();
+        final ArrayList<String> narrowerList = new ArrayList<>(Arrays.asList(new String[0]));
 
         if (searchHistory.containsKey(input))
         {
-          _searchResult.addAll(searchHistory.get(input));
+          for (String el : searchHistory.get(input))
+          {
+            narrowerList.add(el);
+          }
         }
         else
         {
@@ -322,7 +325,7 @@ public class MainActivity extends AppCompatActivity
             temp = temp.substring(0, temp.length() - 1);
           }
           ArrayList<String> tempList = searchHistory.get(temp);
-          ArrayList<String> narrowerList = new ArrayList<>(Arrays.asList(new String[0]));
+
           for (String el : tempList)
           {
             if (el.toLowerCase().matches("(.*)" + input.toLowerCase() + "(.*)"))
@@ -331,7 +334,6 @@ public class MainActivity extends AppCompatActivity
             }
           }
           searchHistory.put(input, narrowerList);
-          _searchResult.addAll(narrowerList);
         }
 
         String newInput = searchInput.getText().toString();
@@ -350,16 +352,18 @@ public class MainActivity extends AppCompatActivity
               {
                 clearSearchInputBtn.setVisibility(View.GONE);
               }
+              _searchResult.clear();
+              _searchResult.addAll(narrowerList);
               _searchAdapter.notifyDataSetChanged();
               searchList.setVisibility(View.VISIBLE);
               spinner.setVisibility(View.GONE);
             }
           });
         }
-        else
-        {
-          filterSearchResults(newInput);
-        }
+//        else
+//        {
+//          filterSearchResults(newInput);
+//        }
       }
     }).start();
   }

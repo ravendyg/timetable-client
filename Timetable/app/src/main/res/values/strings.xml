@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Расписание НГУ</string>
 
-    <!--<string name="base_url">http://timetable.nskgortrans.info/api2/</string>-->
+    <!--<string name="base_url">http://timetable.nskgortrans.info/test/api2/</string>-->
     <string name="base_url">http://timetable.nskgortrans.info/api2/</string>
 
     <string name="pref_refresh" translatable="false">pref_refresh</string>
