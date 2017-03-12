@@ -5,11 +5,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.venomyd.timetable.Adapters.RowAdapter;
@@ -35,7 +37,7 @@ public class TableActivity extends AppCompatActivity
   private RowAdapter rowAdapter;
 
   private ArrayList<Lesson> data;
-  private ArrayList<Lesson> list = null;
+  private ArrayList<Lesson> list = new ArrayList<>(Arrays.asList(new Lesson[0]));
 
   private ListView tableList;
 
@@ -49,6 +51,10 @@ public class TableActivity extends AppCompatActivity
   private BroadcastReceiver mainReceiver;
 
   private ListItem item;
+
+  private ArrayList<LinearLayout> tabs = new ArrayList<>(Arrays.asList(new LinearLayout[0]));
+
+  int day = (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) + 5) % 7;
 
 
   @Override
@@ -66,6 +72,38 @@ public class TableActivity extends AppCompatActivity
 
     tableList = (ListView) findViewById(R.id.table_list);
 
+    tabs.add((LinearLayout) findViewById(R.id.day0));
+    tabs.add((LinearLayout) findViewById(R.id.day1));
+    tabs.add((LinearLayout) findViewById(R.id.day2));
+    tabs.add((LinearLayout) findViewById(R.id.day3));
+    tabs.add((LinearLayout) findViewById(R.id.day4));
+    tabs.add((LinearLayout) findViewById(R.id.day5));
+    tabs.add((LinearLayout) findViewById(R.id.day6));
+
+    for (int i = 0; i < tabs.size(); i++)
+    {
+      final LinearLayout icon = tabs.get(i);
+      icon.setOnClickListener(new View.OnClickListener()
+      {
+        @Override
+        public void onClick(View v)
+        {
+          int id = v.getId();
+          for (int j = 0; j < tabs.size(); j++)
+          {
+            if (id == tabs.get(j).getId())
+            {
+              day = j;
+              updateDayView();
+              break;
+            }
+          }
+        }
+      });
+    }
+
+    updateDayView();
+
     tableList.setOnItemClickListener(
             new AdapterView.OnItemClickListener()
             {
@@ -73,36 +111,36 @@ public class TableActivity extends AppCompatActivity
               public void onItemClick (AdapterView<?> adapterView, View view,
                                        final int position, long id)
               {
-                Lesson element = rowAdapter.getElement(position);
-                if (element.type != -1)
-                {
-                  // info
-                  // implement later
-                }
-                else if (element.open)
-                {
-                  element.open = false;
-                  for (int i = 0; i < Config.bells.length; i++)
-                  {
-                    list.remove(position + 1);
-                  }
-                }
-                else
-                {
-                  element.open = true;
-                  for (int i = Config.bells.length; i > 0 ; i--)
-                  {
-                    Lesson insert = data.get(element.counter + i);
-                    list.add(position + 1, insert);
-                  }
-                  tableList.post(new Runnable() {
-                    @Override
-                    public void run() {
-                      tableList.smoothScrollToPositionFromTop(position, 0);
-                    }
-                  });
-                }
-                rowAdapter.notifyDataSetChanged();
+//                Lesson element = rowAdapter.getElement(position);
+//                if (element.type != -1)
+//                {
+//                  // info
+//                  // implement later
+//                }
+//                else if (element.open)
+//                {
+//                  element.open = false;
+//                  for (int i = 0; i < Config.bells.length; i++)
+//                  {
+//                    list.remove(position + 1);
+//                  }
+//                }
+//                else
+//                {
+//                  element.open = true;
+//                  for (int i = Config.bells.length; i > 0 ; i--)
+//                  {
+//                    Lesson insert = data.get(element.counter + i);
+//                    list.add(position + 1, insert);
+//                  }
+//                  tableList.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                      tableList.smoothScrollToPositionFromTop(position, 0);
+//                    }
+//                  });
+//                }
+//                rowAdapter.notifyDataSetChanged();
               }
             }
     );
@@ -125,7 +163,7 @@ public class TableActivity extends AppCompatActivity
             String id = intent.getStringExtra("id");
             if (item.id.equals(id))
             {
-              setTable((ArrayList<Lesson>) intent.getSerializableExtra("list"), intent.getBooleanExtra("forceUpdate", false));
+              setTable((ArrayList<Lesson>) intent.getSerializableExtra("list"));
             }
           }
         }
@@ -158,6 +196,19 @@ public class TableActivity extends AppCompatActivity
     unregisterReceiver(mainReceiver);
   }
 
+  private void updateDayView()
+  {
+    if (data != null)
+    {
+      list.clear();
+      for (int i = day * Config.bells.length; i < Math.min((day+1) * Config.bells.length, data.size()); i++)
+      {
+        list.add(data.get(i));
+      }
+      rowAdapter.notifyDataSetChanged();
+    }
+  }
+
   private void requestData(ListItem item)
   {
     Intent intent = new Intent("com.venomyd.timetable.data.service");
@@ -172,75 +223,12 @@ public class TableActivity extends AppCompatActivity
     bar.setTitle(name);
   }
 
-  private void setTable(ArrayList<Lesson> _data, boolean forceUpdate)
+  private void setTable(ArrayList<Lesson> _data)
   {
-    final int day = (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) + 5) % 7;
-
     if (_data != null)
     {
       data = _data;
-      ArrayList<Lesson> newList = new ArrayList<>(Arrays.asList(new Lesson[0]));
-
-      if (list == null)
-      {
-        int listDay = -1;
-        for (int newListPointer = 0; newListPointer < _data.size(); )
-        {
-          Lesson _item = _data.get(newListPointer);
-          if (_item.position == -1)
-          {
-            listDay++;
-            if (day != listDay)
-            {
-              newListPointer += 8;
-              _item.open = false;
-            }
-            else
-            {
-              newListPointer++;
-              _item.open = true;
-            }
-          }
-          else
-          {
-            newListPointer++;
-          }
-          newList.add(_item);
-        }
-      }
-      else if (!forceUpdate)
-      {
-        return;
-      }
-      else
-      {
-        for (int oldListPointer = 0, newListPointer = 0;
-             oldListPointer < list.size() && newListPointer < _data.size(); oldListPointer++)
-        {
-          Lesson oldItem = list.get(oldListPointer);
-          newList.add(_data.get(newListPointer));
-          if (oldItem.position == -1 && !oldItem.open)
-          {
-            newListPointer += 8;
-          }
-          else
-          {
-            newListPointer++;
-          }
-        }
-      }
-      list = newList;
-
-      rowAdapter = new RowAdapter(this, list);
-      tableList.setAdapter(rowAdapter);
-      findViewById(R.id.loading_spinner).setVisibility(View.GONE);
-
-      tableList.post(new Runnable() {
-        @Override
-        public void run() {
-          tableList.smoothScrollToPositionFromTop(day, 0);
-        }
-      });
+      updateDayView();
     }
   }
 

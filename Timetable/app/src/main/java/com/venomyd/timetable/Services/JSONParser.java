@@ -91,10 +91,6 @@ public class JSONParser
       JSONObject events = (new JSONObject(str)).getJSONObject("events");
       for (int day = 1; day <= 7; day++)
       {
-//        int day = 1;
-        temp = new Lesson(-1, null, (day - 1) * (Config.bells.length + 1), null, null, null);
-        temp.dayName = Config.days[day - 1];
-        out.add(temp);
         for (int bell = 0; bell < 7; bell++)
         {
           ArrayList<LessonItem> _items = new ArrayList<>(Arrays.asList(new LessonItem[0]));
