@@ -7,28 +7,6 @@
     <color name="tableHeaderRipple">#3F51B5</color>
     <color name="colorOddText">#303F9F</color>
 
-    <!--<color name="colorPrimary">#9E9E9E</color>-->
-    <!--<color name="colorPrimaryDark">#424242</color>-->
-    <!--<color name="colorAccent">#FF4081</color>-->
-    <!--<color name="tableHeader">#EEEEEE</color>-->
-    <!--&lt;!&ndash; Primary color of the app (shown in the app bar) &ndash;&gt;-->
-    <!--<color name="colorPrimary">#4A312A</color>-->
-
-    <!--&lt;!&ndash; Primary dark color of the app (shown in the status bar) &ndash;&gt;-->
-    <!--<color name="colorPrimaryDark">#2F1D1A</color>-->
-
-    <!--&lt;!&ndash; Background color for app &ndash;&gt;-->
-    <!--<color name="tan_background">#FFF7DA</color>-->
-
-    <!--&lt;!&ndash; Background color for the numbers category &ndash;&gt;-->
-    <!--<color name="category_numbers">#FD8E09</color>-->
-
-    <!--&lt;!&ndash; Background color for the family members category &ndash;&gt;-->
-    <!--<color name="category_family">#379237</color>-->
-
-    <!--&lt;!&ndash; Background color for the colors category &ndash;&gt;-->
-    <!--<color name="category_colors">#8800A0</color>-->
-
-    <!--&lt;!&ndash; Background color for the phrases category &ndash;&gt;-->
-    <!--<color name="category_phrases">#16AFCA</color>-->
+    <color name="tabBg">#66B0BEC5</color>
+    <color name="selectedTab">#FF00FF00</color>
 </resources>

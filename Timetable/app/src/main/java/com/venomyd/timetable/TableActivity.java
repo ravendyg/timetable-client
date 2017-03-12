@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import android.os.Handler;
+import android.widget.TextView;
 
 /**
  * Created by me on 25/08/16.
@@ -52,7 +53,7 @@ public class TableActivity extends AppCompatActivity
 
   private ListItem item;
 
-  private ArrayList<LinearLayout> tabs = new ArrayList<>(Arrays.asList(new LinearLayout[0]));
+  private ArrayList<TextView> tabs = new ArrayList<>(Arrays.asList(new TextView[0]));
 
   int day = (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) + 5) % 7;
 
@@ -71,19 +72,21 @@ public class TableActivity extends AppCompatActivity
     setHeader(item.name);
 
     tableList = (ListView) findViewById(R.id.table_list);
+    rowAdapter = new RowAdapter(this, list);
+    tableList.setAdapter(rowAdapter);
 
-    tabs.add((LinearLayout) findViewById(R.id.day0));
-    tabs.add((LinearLayout) findViewById(R.id.day1));
-    tabs.add((LinearLayout) findViewById(R.id.day2));
-    tabs.add((LinearLayout) findViewById(R.id.day3));
-    tabs.add((LinearLayout) findViewById(R.id.day4));
-    tabs.add((LinearLayout) findViewById(R.id.day5));
-    tabs.add((LinearLayout) findViewById(R.id.day6));
+    tabs.add((TextView) findViewById(R.id.day0));
+    tabs.add((TextView) findViewById(R.id.day1));
+    tabs.add((TextView) findViewById(R.id.day2));
+    tabs.add((TextView) findViewById(R.id.day3));
+    tabs.add((TextView) findViewById(R.id.day4));
+    tabs.add((TextView) findViewById(R.id.day5));
+    tabs.add((TextView) findViewById(R.id.day6));
 
     for (int i = 0; i < tabs.size(); i++)
     {
-      final LinearLayout icon = tabs.get(i);
-      icon.setOnClickListener(new View.OnClickListener()
+      final TextView tab = tabs.get(i);
+      tab.setOnClickListener(new View.OnClickListener()
       {
         @Override
         public void onClick(View v)
@@ -103,47 +106,6 @@ public class TableActivity extends AppCompatActivity
     }
 
     updateDayView();
-
-    tableList.setOnItemClickListener(
-            new AdapterView.OnItemClickListener()
-            {
-              @Override
-              public void onItemClick (AdapterView<?> adapterView, View view,
-                                       final int position, long id)
-              {
-//                Lesson element = rowAdapter.getElement(position);
-//                if (element.type != -1)
-//                {
-//                  // info
-//                  // implement later
-//                }
-//                else if (element.open)
-//                {
-//                  element.open = false;
-//                  for (int i = 0; i < Config.bells.length; i++)
-//                  {
-//                    list.remove(position + 1);
-//                  }
-//                }
-//                else
-//                {
-//                  element.open = true;
-//                  for (int i = Config.bells.length; i > 0 ; i--)
-//                  {
-//                    Lesson insert = data.get(element.counter + i);
-//                    list.add(position + 1, insert);
-//                  }
-//                  tableList.post(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                      tableList.smoothScrollToPositionFromTop(position, 0);
-//                    }
-//                  });
-//                }
-//                rowAdapter.notifyDataSetChanged();
-              }
-            }
-    );
   }
 
   @Override
@@ -201,11 +163,24 @@ public class TableActivity extends AppCompatActivity
     if (data != null)
     {
       list.clear();
-      for (int i = day * Config.bells.length; i < Math.min((day+1) * Config.bells.length, data.size()); i++)
+      for (int i = day * Config.bells.length;
+           i < Math.min((day+1) * Config.bells.length, data.size()); i++)
       {
         list.add(data.get(i));
       }
       rowAdapter.notifyDataSetChanged();
+    }
+
+    for (int i = 0; i < tabs.size(); i++)
+    {
+      if (day != i)
+      {
+        tabs.get(i).setBackgroundColor(this.getResources().getColor(R.color.tabBg));
+      }
+      else
+      {
+        tabs.get(i).setBackgroundColor(this.getResources().getColor(R.color.selectedTab));
+      }
     }
   }
 
@@ -230,9 +205,8 @@ public class TableActivity extends AppCompatActivity
       data = _data;
       updateDayView();
     }
+    findViewById(R.id.loading_spinner).setVisibility(View.GONE);
   }
-
-
 
   private boolean isServiceRunning(Class<?> serviceClass)
   {
