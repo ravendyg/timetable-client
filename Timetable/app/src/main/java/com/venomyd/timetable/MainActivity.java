@@ -362,10 +362,6 @@ public class MainActivity extends AppCompatActivity
             }
           });
         }
-//        else
-//        {
-//          filterSearchResults(newInput);
-//        }
       }
     }).start();
   }
